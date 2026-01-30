@@ -42,7 +42,7 @@ class TenantMiddleware:
 
         if tenant is None and hasattr(request, "user") and request.user.is_authenticated:
             # Try to get user's default tenant
-            tenant = self._get_user_default_tenant(request.user)  # type: ignore[arg-type]
+            tenant = self._get_user_default_tenant(request.user)
 
         request.tenant = tenant  # type: ignore[attr-defined]
         return self.get_response(request)

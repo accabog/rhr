@@ -4,7 +4,7 @@ Custom User model with email-based authentication.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     objects: UserManager = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS: list[str] = []
+    REQUIRED_FIELDS: ClassVar[list[str]] = []
 
     class Meta:
         ordering = ["email"]
