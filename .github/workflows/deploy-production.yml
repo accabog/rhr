@@ -1,0 +1,211 @@
+name: Deploy to Production
+
+on:
+  # Manual trigger with optional version tag
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version/tag to deploy (leave empty for latest)'
+        required: false
+        default: ''
+      skip_backup:
+        description: 'Skip database backup (not recommended)'
+        required: false
+        default: 'false'
+        type: boolean
+
+  # Also trigger on release
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/rhr
+
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
+      version: ${{ steps.tag.outputs.version }}
+
+    steps:
+      - name: Determine image tag
+        id: tag
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ -n "${INPUT_VERSION}" ]; then
+            echo "tag=${INPUT_VERSION}" >> $GITHUB_OUTPUT
+            echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
+          elif [ -n "${RELEASE_TAG}" ]; then
+            echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+            echo "version=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "version=latest" >> $GITHUB_OUTPUT
+          fi
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    environment:
+      name: production
+      url: https://raptorhr.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pre-deployment database backup
+        if: ${{ github.event.inputs.skip_backup != 'true' }}
+        uses: appleboy/ssh-action@master
+        env:
+          BACKUP_DATE: ${{ github.run_id }}
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          envs: BACKUP_DATE
+          script: |
+            set -e
+            cd /opt/rhr
+
+            # Create backup directory
+            mkdir -p /opt/backups
+
+            # Backup database
+            docker compose -f docker-compose.prod.yml exec -T db \
+              pg_dump -U rhr rhr | gzip > "/opt/backups/rhr_backup_${BACKUP_DATE}.sql.gz"
+
+            echo "Database backup completed: /opt/backups/rhr_backup_${BACKUP_DATE}.sql.gz"
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@master
+        env:
+          IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
+          BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ needs.prepare.outputs.image_tag }}
+          FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ needs.prepare.outputs.image_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          envs: IMAGE_TAG,BACKEND_IMAGE,FRONTEND_IMAGE,GH_TOKEN,GH_ACTOR
+          script: |
+            set -e
+
+            # Navigate to deployment directory
+            cd /opt/rhr
+
+            # Pull latest code for configs
+            git fetch origin main
+            git checkout main
+            git pull origin main
+
+            # Login to GitHub Container Registry
+            echo "${GH_TOKEN}" | docker login ghcr.io -u "${GH_ACTOR}" --password-stdin
+
+            # Set environment variables
+            export BACKEND_IMAGE="${BACKEND_IMAGE}"
+            export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
+
+            # Pull new images
+            docker compose -f docker-compose.prod.yml pull
+
+            # Store current image tags for potential rollback
+            docker compose -f docker-compose.prod.yml config | grep 'image:' > /opt/rhr/.previous_images
+
+            # Run database migrations
+            docker compose -f docker-compose.prod.yml run --rm backend python manage.py migrate --no-input
+
+            # Collect static files
+            docker compose -f docker-compose.prod.yml run --rm backend python manage.py collectstatic --no-input
+
+            # Restart services
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Wait for services to be healthy
+            sleep 30
+
+            # Verify deployment
+            curl -f http://localhost/health || exit 1
+
+            # Clean up old images
+            docker image prune -f
+
+            echo "Deployment completed successfully!"
+
+      - name: Verify production health
+        run: |
+          # Wait for deployment to stabilize
+          sleep 15
+
+          # Multiple health checks
+          for i in {1..5}; do
+            curl -f https://raptorhr.com/api/health/ || exit 1
+            curl -f https://raptorhr.com/ || exit 1
+            sleep 5
+          done
+
+          echo "Production health checks passed!"
+
+      - name: Notify deployment success
+        if: success()
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          echo "Production deployment successful!"
+          echo "Version: ${VERSION}"
+          echo "Environment: production"
+
+  rollback:
+    name: Rollback (if needed)
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy]
+    if: failure() && needs.deploy.result == 'failure'
+
+    environment:
+      name: production
+
+    steps:
+      - name: Rollback to previous version
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/rhr
+
+            echo "Initiating rollback..."
+
+            # Restore previous images if available
+            if [ -f .previous_images ]; then
+              # Extract previous image references
+              PREV_BACKEND=$(grep 'backend' .previous_images | awk '{print $2}')
+              PREV_FRONTEND=$(grep 'frontend' .previous_images | awk '{print $2}')
+
+              export BACKEND_IMAGE="${PREV_BACKEND}"
+              export FRONTEND_IMAGE="${PREV_FRONTEND}"
+
+              # Restart with previous images
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+              echo "Rollback completed to previous images"
+            else
+              echo "No previous images found, manual intervention required"
+              exit 1
+            fi
+
+      - name: Verify rollback
+        run: |
+          sleep 30
+          curl -f https://raptorhr.com/api/health/ || exit 1
+          echo "Rollback verified successfully"

@@ -1,0 +1,5 @@
+# SSL certificates go here
+# Do NOT commit actual certificates to git
+# Use Let's Encrypt or your CA to generate:
+# - fullchain.pem
+# - privkey.pem
