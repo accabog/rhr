@@ -3,7 +3,7 @@ Tests for tenant middleware.
 """
 
 import pytest
-from django.test import RequestFactory, override_settings
+from django.test import RequestFactory
 
 from apps.tenants.middleware import TenantMiddleware
 from apps.tenants.models import Tenant, TenantMembership

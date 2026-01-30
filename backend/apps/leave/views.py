@@ -5,7 +5,6 @@ Leave management views.
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import Sum
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets

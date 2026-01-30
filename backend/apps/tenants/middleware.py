@@ -2,9 +2,6 @@
 Tenant middleware for request-based tenant resolution.
 """
 
-from django.http import JsonResponse
-
-
 class TenantMiddleware:
     """
     Middleware to resolve and attach the current tenant to the request.
