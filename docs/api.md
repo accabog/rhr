@@ -35,8 +35,8 @@ Content-Type: application/json
 **Response:**
 ```json
 {
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "access": "<access-token>",
+  "refresh": "<refresh-token>",
   "user": {
     "id": 1,
     "email": "user@example.com",
@@ -59,7 +59,7 @@ Include the access token in the `Authorization` header:
 
 ```http
 GET /api/v1/employees/
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Authorization: Bearer <access-token>
 ```
 
 ### Refresh Token
@@ -69,14 +69,14 @@ POST /api/v1/auth/token/refresh/
 Content-Type: application/json
 
 {
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+  "refresh": "<refresh-token>"
 }
 ```
 
 **Response:**
 ```json
 {
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+  "access": "<access-token>"
 }
 ```
 
