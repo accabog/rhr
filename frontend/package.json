@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "typecheck": "tsc --noEmit",
-    "prepare": "cd .. && husky frontend/.husky"
+    "prepare": "cd .. && git config core.hooksPath .husky"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
@@ -57,14 +57,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "bash -c 'npx tsc --noEmit'"
+      "eslint --fix"
     ],
     "*.{js,jsx}": [
       "eslint --fix"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
     ]
   }
 }
