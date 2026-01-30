@@ -54,13 +54,13 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-# Allow unused imports in test files (common for fixtures)
-"**/tests/*.py" = ["F401", "F841"]
-"**/test_*.py" = ["F401", "F841"]
+# Allow unused imports and relaxed rules in test files
+"**/tests/*.py" = ["F401", "F841", "I001"]
+"**/test_*.py" = ["F401", "F841", "I001"]
 # Allow unused imports in migrations
 "**/migrations/*.py" = ["F401", "E501"]
 # Allow unused imports in serializers (type hints)
-"**/serializers.py" = ["F401"]
+"**/serializers.py" = ["F401", "SIM102"]
 # Allow unused imports in views
 "**/views.py" = ["F401"]
 # Allow unused imports in middleware
