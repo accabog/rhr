@@ -1,37 +1,23 @@
 # Raptor HR
 
-Enterprise HR management platform with multi-tenant support.
+[![CI](https://github.com/your-org/rhr/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/rhr/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/your-org/rhr/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/rhr)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Enterprise HR management platform with multi-tenant support, time tracking, leave management, and more.
 
 ## Features
 
-- **Employee Management** - Track employee records, departments, and positions
-- **Time Tracking** - Clock in/out, manual time entries
-- **Timesheets** - Period-based time summaries with approval workflow
-- **Leave Management** - PTO, sick leave, holiday calendar
-- **Contracts** - Employment contract management
+| Feature | Description |
+|---------|-------------|
+| **Multi-Tenancy** | Complete data isolation per organization |
+| **Employee Management** | Records, departments, positions, org charts |
+| **Time Tracking** | Clock in/out, manual entries, approval workflows |
+| **Timesheets** | Period-based summaries with multi-step approval |
+| **Leave Management** | PTO, sick leave, holiday calendars |
+| **Contracts** | Employment agreement management |
 
-## Tech Stack
-
-### Backend
-- Django 5.x + Django REST Framework
-- PostgreSQL 16
-- Celery + Redis for background tasks
-- JWT authentication
-
-### Frontend
-- React 18 + TypeScript
-- Ant Design 5.x
-- TanStack Query + Zustand
-- Vite
-
-## Getting Started
-
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 20+ (for local frontend development)
-- Python 3.12+ (for local backend development)
-
-### Quick Start with Docker
+## Quick Start
 
 ```bash
 # Start all services
@@ -40,80 +26,107 @@ docker-compose up -d
 # Run database migrations
 docker-compose exec backend python manage.py migrate
 
-# Create a superuser (optional)
+# Create admin user (optional)
 docker-compose exec backend python manage.py createsuperuser
 ```
 
-Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000/api/v1/
-- API Documentation: http://localhost:8000/api/docs/
+**Access the application:**
 
-### Local Development
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| API | http://localhost:8000/api/v1/ |
+| API Docs | http://localhost:8000/api/docs/ |
+| Admin | http://localhost:8000/admin/ |
 
-#### Backend
-```bash
-cd backend
+## Tech Stack
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Backend
+- Python 3.12 / Django 5.x / Django REST Framework
+- PostgreSQL 16 / Redis 7
+- Celery for background tasks
+- JWT authentication
 
-# Install dependencies
-pip install -e ".[dev]"
+### Frontend
+- React 18 / TypeScript
+- Ant Design 5.x
+- TanStack Query / Zustand
+- Vite
 
-# Set up environment variables
-export DATABASE_URL=postgres://rhr:rhr_dev_password@localhost:5432/rhr
-export REDIS_URL=redis://localhost:6379/0
+### Infrastructure
+- Docker / Docker Compose
+- GitHub Actions CI/CD
+- Playwright E2E testing
 
-# Run migrations
-python manage.py migrate
+## Documentation
 
-# Start development server
-python manage.py runserver
-```
-
-#### Frontend
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](docs/getting-started.md) | Installation and first steps |
+| [Architecture](docs/architecture.md) | System design with diagrams |
+| [Development](docs/development.md) | Local dev setup and debugging |
+| [API Reference](docs/api.md) | REST API documentation |
+| [Deployment](docs/deployment.md) | Production deployment guide |
+| [Database Schema](docs/database.md) | Data model and relationships |
+| [Multi-Tenancy](docs/multi-tenancy.md) | Tenant isolation explained |
+| [Frontend](docs/frontend.md) | React architecture |
 
 ## Project Structure
 
 ```
 rhr/
-├── backend/           # Django REST Framework backend
-│   ├── config/        # Django configuration
-│   └── apps/          # Django applications
-├── frontend/          # React frontend
+├── backend/              # Django REST Framework
+│   ├── config/           # Django settings
+│   └── apps/             # Django applications
+│       ├── core/         # Base models, utilities
+│       ├── tenants/      # Multi-tenancy
+│       ├── users/        # Authentication
+│       ├── employees/    # Employee management
+│       ├── timetracking/ # Time entries
+│       ├── timesheets/   # Period summaries
+│       ├── leave/        # PTO management
+│       └── contracts/    # Employment contracts
+├── frontend/             # React + TypeScript
 │   └── src/
-│       ├── api/       # API client
-│       ├── features/  # Feature modules
-│       └── stores/    # State management
-├── nginx/             # Nginx configuration
-└── docker-compose.yml
+│       ├── api/          # API client
+│       ├── features/     # Feature modules
+│       ├── stores/       # Zustand state
+│       └── types/        # TypeScript types
+├── docs/                 # Documentation
+└── nginx/                # Reverse proxy config
 ```
-
-## API Documentation
-
-Interactive API documentation is available at `/api/docs/` when running the backend.
 
 ## Running Tests
 
 ```bash
-# Backend tests
-cd backend && pytest
+# Backend
+cd backend && pytest --cov=apps
 
-# Frontend tests
+# Frontend
 cd frontend && npm test
+
+# E2E
+cd frontend && npm run test:e2e
 ```
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Code style guidelines
+- Pull request process
+
+## Security
+
+For security concerns, please see [SECURITY.md](SECURITY.md) for:
+- Vulnerability reporting
+- Security features
+- Best practices
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE) for details.
