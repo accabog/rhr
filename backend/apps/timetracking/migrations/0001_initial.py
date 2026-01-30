@@ -1,0 +1,128 @@
+# Generated manually for RHR project
+
+import django.db.models.deletion
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        ("tenants", "0001_initial"),
+        ("employees", "0001_initial"),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name="TimeEntryType",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=100)),
+                ("code", models.CharField(max_length=20)),
+                ("is_paid", models.BooleanField(default=True)),
+                (
+                    "multiplier",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=1.0,
+                        help_text="Pay multiplier (e.g., 1.5 for overtime)",
+                        max_digits=4,
+                    ),
+                ),
+                ("color", models.CharField(default="#3b82f6", max_length=7)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "tenant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="timetracking_timeentrytype_set",
+                        to="tenants.tenant",
+                    ),
+                ),
+            ],
+            options={
+                "ordering": ["name"],
+            },
+        ),
+        migrations.CreateModel(
+            name="TimeEntry",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("date", models.DateField()),
+                ("start_time", models.TimeField()),
+                ("end_time", models.TimeField(blank=True, null=True)),
+                ("break_minutes", models.PositiveIntegerField(default=0)),
+                ("notes", models.TextField(blank=True)),
+                ("project", models.CharField(blank=True, max_length=255)),
+                ("task", models.CharField(blank=True, max_length=255)),
+                ("is_approved", models.BooleanField(default=False)),
+                ("approved_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_time_entries",
+                        to="employees.employee",
+                    ),
+                ),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="time_entries",
+                        to="employees.employee",
+                    ),
+                ),
+                (
+                    "entry_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="entries",
+                        to="timetracking.timeentrytype",
+                    ),
+                ),
+                (
+                    "tenant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="timetracking_timeentry_set",
+                        to="tenants.tenant",
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name_plural": "Time entries",
+                "ordering": ["-date", "-start_time"],
+            },
+        ),
+        migrations.AddConstraint(
+            model_name="timeentrytype",
+            constraint=models.UniqueConstraint(
+                fields=("tenant", "code"),
+                name="unique_time_entry_type_code_per_tenant",
+            ),
+        ),
+    ]
