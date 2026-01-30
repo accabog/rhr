@@ -4,8 +4,6 @@ Leave management serializers.
 
 from rest_framework import serializers
 
-from apps.employees.models import Employee
-
 from .models import Holiday, LeaveBalance, LeaveRequest, LeaveType
 
 

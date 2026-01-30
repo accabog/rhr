@@ -9,7 +9,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from apps.leave.models import Holiday, LeaveBalance, LeaveRequest, LeaveType
+from apps.leave.models import Holiday, LeaveBalance, LeaveRequest
 
 
 @pytest.mark.django_db
@@ -60,7 +60,7 @@ class TestLeaveBalanceViewSet:
         self, authenticated_tenant_client, tenant, employee_with_user, leave_type
     ):
         """Test getting current user's balances."""
-        balance = LeaveBalance.objects.create(
+        LeaveBalance.objects.create(
             tenant=tenant,
             employee=employee_with_user,
             leave_type=leave_type,

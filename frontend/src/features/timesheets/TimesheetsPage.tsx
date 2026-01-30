@@ -78,7 +78,7 @@ export default function TimesheetsPage() {
     {
       title: 'Period',
       key: 'period',
-      render: (_, record) => (
+      render: (_: unknown, record: TimesheetListItem) => (
         <Space direction="vertical" size={0}>
           <Text strong>
             {dayjs(record.period_start).format('MMM D')} -{' '}
@@ -100,7 +100,7 @@ export default function TimesheetsPage() {
       title: 'Hours',
       key: 'hours',
       width: 140,
-      render: (_, record) => (
+      render: (_: unknown, record: TimesheetListItem) => (
         <Space direction="vertical" size={0}>
           <Text strong>{record.total_hours.toFixed(1)}h total</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -115,7 +115,7 @@ export default function TimesheetsPage() {
       title: 'Status',
       key: 'status',
       width: 120,
-      render: (_, record) => (
+      render: (_: unknown, record: TimesheetListItem) => (
         <Tag color={STATUS_COLORS[record.status]} icon={STATUS_ICONS[record.status]}>
           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
         </Tag>
@@ -125,7 +125,7 @@ export default function TimesheetsPage() {
       title: 'Submitted',
       key: 'submitted_at',
       width: 130,
-      render: (_, record) =>
+      render: (_: unknown, record: TimesheetListItem) =>
         record.submitted_at ? (
           <Text type="secondary">
             {dayjs(record.submitted_at).format('MMM D, h:mm A')}
@@ -138,7 +138,7 @@ export default function TimesheetsPage() {
       title: 'Actions',
       key: 'actions',
       width: 100,
-      render: (_, record) => (
+      render: (_: unknown, record: TimesheetListItem) => (
         <Button type="link" onClick={() => handleViewTimesheet(record.id)}>
           View
         </Button>
