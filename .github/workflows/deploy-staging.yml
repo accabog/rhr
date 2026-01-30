@@ -15,7 +15,8 @@ jobs:
   deploy:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Only deploy if CI passed AND staging secrets are configured
+    if: ${{ github.event.workflow_run.conclusion == 'success' && vars.STAGING_ENABLED == 'true' }}
 
     environment:
       name: staging

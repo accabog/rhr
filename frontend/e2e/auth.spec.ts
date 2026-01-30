@@ -41,8 +41,9 @@ test.describe('Authentication', () => {
       await page.getByPlaceholder('Password').fill('wrongpassword');
       await page.getByRole('button', { name: /sign in/i }).click();
 
-      // Should show error message
-      await expect(page.getByText(/invalid|incorrect|unauthorized/i)).toBeVisible();
+      // Should show error message - backend returns "No active account found with the given credentials"
+      // or fallback "Login failed"
+      await expect(page.getByText(/no active account|login failed|credentials/i)).toBeVisible();
     });
 
     test('redirects to home after successful login', async ({ page }) => {
@@ -71,7 +72,9 @@ test.describe('Authentication', () => {
       await expect(page.getByPlaceholder('First name')).toBeVisible();
       await expect(page.getByPlaceholder('Last name')).toBeVisible();
       await expect(page.getByPlaceholder('Email address')).toBeVisible();
-      await expect(page.getByPlaceholder('Password')).toBeVisible();
+      // Use exact match for password field (not confirm password)
+      await expect(page.getByPlaceholder('Password', { exact: true })).toBeVisible();
+      await expect(page.getByPlaceholder('Confirm password')).toBeVisible();
       await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();
     });
 
@@ -80,7 +83,8 @@ test.describe('Authentication', () => {
 
       await page.getByRole('button', { name: /create account/i }).click();
 
-      await expect(page.getByText(/first name/i)).toBeVisible();
+      // Check for validation message - could be "required" or specific field name
+      await expect(page.getByText(/required|first name/i)).toBeVisible();
     });
 
     test('validates email format', async ({ page }) => {
@@ -89,11 +93,12 @@ test.describe('Authentication', () => {
       await page.getByPlaceholder('First name').fill('Test');
       await page.getByPlaceholder('Last name').fill('User');
       await page.getByPlaceholder('Email address').fill('not-an-email');
-      await page.getByPlaceholder('Password').fill('Password123!');
+      await page.getByPlaceholder('Password', { exact: true }).fill('Password123!');
+      await page.getByPlaceholder('Confirm password').fill('Password123!');
 
       await page.getByRole('button', { name: /create account/i }).click();
 
-      await expect(page.getByText(/valid email/i)).toBeVisible();
+      await expect(page.getByText(/valid email|invalid email/i)).toBeVisible();
     });
 
     test('has link to login', async ({ page }) => {

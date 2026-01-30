@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   secret-detection:
     name: Secret Detection
@@ -49,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile.prod
           push: false
           load: true
           tags: rhr-frontend:scan
