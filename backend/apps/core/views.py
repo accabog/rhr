@@ -33,9 +33,9 @@ class DashboardStatsView(APIView):
     permission_classes = [IsAuthenticated, IsTenantMember]
 
     def get(self, request):
+        from apps.contracts.models import Contract
         from apps.employees.models import Department, Employee, Position
         from apps.leave.models import LeaveRequest
-        from apps.contracts.models import Contract
 
         tenant = request.tenant
         if not tenant:

@@ -103,7 +103,7 @@ jobs:
 
       - name: Run type checking
         working-directory: ./frontend
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit -p tsconfig.build.json
 
       - name: Run tests with coverage gate
         working-directory: ./frontend
