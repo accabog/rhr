@@ -2,16 +2,22 @@
 Custom User model with email-based authentication.
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
 from apps.core.models import TimestampedModel
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager["User"]):
     """Manager for custom User model."""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(
+        self, email: str, password: str | None = None, **extra_fields: Any
+    ) -> User:
         """Create and return a regular user."""
         if not email:
             raise ValueError("Users must have an email address")
@@ -21,7 +27,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(
+        self, email: str, password: str | None = None, **extra_fields: Any
+    ) -> User:
         """Create and return a superuser."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
@@ -54,18 +62,18 @@ class User(AbstractBaseUser, PermissionsMixin, TimestampedModel):
         related_name="users",
     )
 
-    objects = UserManager()
+    objects: UserManager = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: list[str] = []
 
     class Meta:
         ordering = ["email"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         """Return the user's full name."""
         return f"{self.first_name} {self.last_name}".strip() or self.email

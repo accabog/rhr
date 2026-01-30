@@ -2,6 +2,17 @@
 Tenant middleware for request-based tenant resolution.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable
+
+from django.http import HttpRequest, HttpResponse
+
+if TYPE_CHECKING:
+    from apps.tenants.models import Tenant
+    from apps.users.models import User
+
+
 class TenantMiddleware:
     """
     Middleware to resolve and attach the current tenant to the request.
@@ -12,11 +23,11 @@ class TenantMiddleware:
     3. User's default tenant (if authenticated)
     """
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
-        request.tenant = None
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        request.tenant = None  # type: ignore[attr-defined]
 
         # Skip tenant resolution for non-API paths and auth endpoints
         if not request.path.startswith("/api/") or request.path.startswith("/api/v1/auth/"):
@@ -28,14 +39,14 @@ class TenantMiddleware:
 
         tenant = self._resolve_tenant(request)
 
-        if tenant is None and hasattr(request, 'user') and request.user.is_authenticated:
+        if tenant is None and hasattr(request, "user") and request.user.is_authenticated:
             # Try to get user's default tenant
-            tenant = self._get_user_default_tenant(request.user)
+            tenant = self._get_user_default_tenant(request.user)  # type: ignore[arg-type]
 
-        request.tenant = tenant
+        request.tenant = tenant  # type: ignore[attr-defined]
         return self.get_response(request)
 
-    def _resolve_tenant(self, request):
+    def _resolve_tenant(self, request: HttpRequest) -> Tenant | None:
         """Resolve tenant from request headers or subdomain."""
         from apps.tenants.models import Tenant
 
@@ -59,7 +70,7 @@ class TenantMiddleware:
 
         return None
 
-    def _get_user_default_tenant(self, user):
+    def _get_user_default_tenant(self, user: User) -> Tenant | None:
         """Get the user's default tenant."""
         membership = user.tenant_memberships.filter(is_default=True).first()
         if membership:

@@ -2,7 +2,16 @@
 Core models - base classes for all tenant-aware models.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Self, TypeVar
+
 from django.db import models
+
+if TYPE_CHECKING:
+    from apps.tenants.models import Tenant
+
+_T = TypeVar("_T", bound=models.Model)
 
 
 class TimestampedModel(models.Model):
@@ -33,14 +42,14 @@ class TenantAwareModel(TimestampedModel):
         abstract = True
 
 
-class TenantAwareQuerySet(models.QuerySet):
+class TenantAwareQuerySet(models.QuerySet[_T]):
     """QuerySet that supports tenant filtering."""
 
-    def for_tenant(self, tenant):
+    def for_tenant(self, tenant: Tenant | None) -> Self:
         return self.filter(tenant=tenant)
 
 
-class TenantAwareManager(models.Manager):
+class TenantAwareManager(models.Manager[_T]):
     """
     Manager that automatically filters by tenant from the current request.
 
@@ -49,8 +58,8 @@ class TenantAwareManager(models.Manager):
         Employee.objects.for_tenant(request.tenant).all()
     """
 
-    def get_queryset(self):
+    def get_queryset(self) -> TenantAwareQuerySet[_T]:
         return TenantAwareQuerySet(self.model, using=self._db)
 
-    def for_tenant(self, tenant):
+    def for_tenant(self, tenant: Tenant | None) -> TenantAwareQuerySet[_T]:
         return self.get_queryset().for_tenant(tenant)
