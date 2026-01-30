@@ -3,6 +3,29 @@ import { App } from 'antd';
 import { employeesApi, type EmployeeFilters } from '@/api/employees';
 import type { Employee } from '@/types';
 
+export function useCurrentEmployee() {
+  return useQuery({
+    queryKey: ['employees', 'me'],
+    queryFn: () => employeesApi.getMe(),
+  });
+}
+
+export function useUpdateCurrentEmployee() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (data: Partial<Employee>) => employeesApi.updateMe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees', 'me'] });
+      message.success('Employee record updated');
+    },
+    onError: () => {
+      message.error('Failed to update employee record');
+    },
+  });
+}
+
 export function useEmployees(filters?: EmployeeFilters) {
   return useQuery({
     queryKey: ['employees', filters],

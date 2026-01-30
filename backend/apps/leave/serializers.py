@@ -185,6 +185,7 @@ class HolidaySerializer(serializers.ModelSerializer):
             "is_recurring",
             "applies_to_all",
             "departments",
+            "country",
             "created_at",
             "updated_at",
         ]

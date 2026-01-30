@@ -3,8 +3,10 @@ Employee views.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from apps.core.permissions import IsTenantMember
 
@@ -76,3 +78,30 @@ class EmployeeViewSet(TenantAwareViewSet):
         if self.action == "list":
             return EmployeeListSerializer
         return EmployeeDetailSerializer
+
+    @action(detail=False, methods=["get", "patch"])
+    def me(self, request):
+        """Get or update the current user's employee record."""
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        employee = self.get_queryset().filter(user=request.user).first()
+        if not employee:
+            return Response(
+                {"detail": "No employee record found for current user"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if request.method == "PATCH":
+            serializer = EmployeeDetailSerializer(
+                employee, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+        serializer = EmployeeDetailSerializer(employee)
+        return Response(serializer.data)

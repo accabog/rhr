@@ -10,6 +10,17 @@ export interface EmployeeFilters {
 }
 
 export const employeesApi = {
+  // Current user's employee record
+  getMe: async (): Promise<Employee> => {
+    const response = await apiClient.get<Employee>('/employees/me/');
+    return response.data;
+  },
+
+  updateMe: async (data: Partial<Employee>): Promise<Employee> => {
+    const response = await apiClient.patch<Employee>('/employees/me/', data);
+    return response.data;
+  },
+
   // Employees
   list: async (filters?: EmployeeFilters): Promise<PaginatedResponse<Employee>> => {
     const response = await apiClient.get<PaginatedResponse<Employee>>('/employees/', {

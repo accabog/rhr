@@ -136,6 +136,18 @@ class Employee(TenantAwareModel):
     emergency_contact_name = models.CharField(max_length=255, blank=True)
     emergency_contact_phone = models.CharField(max_length=50, blank=True)
 
+    # Location info
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)",
+    )
+    timezone = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="IANA timezone (e.g., America/New_York, Europe/London)",
+    )
+
     objects = TenantAwareManager()
 
     class Meta:

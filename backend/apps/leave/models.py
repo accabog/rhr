@@ -141,6 +141,11 @@ class Holiday(TenantAwareModel):
         related_name="holidays",
         help_text="If not applies_to_all, only these departments",
     )
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="ISO 3166-1 alpha-2 country code for national holidays",
+    )
 
     objects = TenantAwareManager()
 

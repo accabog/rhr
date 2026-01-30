@@ -85,6 +85,8 @@ class EmployeeListSerializer(serializers.ModelSerializer):
             "status",
             "hire_date",
             "avatar",
+            "country",
+            "timezone",
         ]
 
 
@@ -120,6 +122,8 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
             "address",
             "emergency_contact_name",
             "emergency_contact_phone",
+            "country",
+            "timezone",
             "user",
             "created_at",
             "updated_at",

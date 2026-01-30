@@ -106,6 +106,8 @@ export interface Employee {
   address?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
+  country?: string;
+  timezone?: string;
   user?: number;
   created_at: string;
   updated_at: string;

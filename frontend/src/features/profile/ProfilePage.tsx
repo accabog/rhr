@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Form, Input, Button, Avatar, Typography, Space, Spin, Upload, Dropdown } from 'antd';
+import { Card, Form, Input, Button, Avatar, Typography, Space, Spin, Upload, Dropdown, Select, Divider } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   UserOutlined,
@@ -8,9 +8,13 @@ import {
   CameraOutlined,
   DeleteOutlined,
   UploadOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useUpdateProfile, useUploadAvatar, useRemoveAvatar } from '@/hooks/useProfile';
+import { useCurrentEmployee, useUpdateCurrentEmployee } from '@/hooks/useEmployees';
+import { COUNTRIES } from '@/data/countries';
+import { TIMEZONES } from '@/data/timezones';
 
 const { Title, Text } = Typography;
 
@@ -19,13 +23,22 @@ interface ProfileFormValues {
   last_name: string;
 }
 
+interface LocationFormValues {
+  country: string;
+  timezone: string;
+}
+
 export default function ProfilePage() {
   const [form] = Form.useForm<ProfileFormValues>();
+  const [locationForm] = Form.useForm<LocationFormValues>();
   const user = useAuthStore((state) => state.user);
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
   const removeAvatar = useRemoveAvatar();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const { data: employee, isLoading: employeeLoading } = useCurrentEmployee();
+  const updateEmployee = useUpdateCurrentEmployee();
 
   useEffect(() => {
     if (user) {
@@ -37,8 +50,21 @@ export default function ProfilePage() {
     }
   }, [user, form]);
 
+  useEffect(() => {
+    if (employee) {
+      locationForm.setFieldsValue({
+        country: employee.country || '',
+        timezone: employee.timezone || '',
+      });
+    }
+  }, [employee, locationForm]);
+
   const handleSubmit = (values: ProfileFormValues) => {
     updateProfile.mutate(values);
+  };
+
+  const handleLocationSubmit = (values: LocationFormValues) => {
+    updateEmployee.mutate(values);
   };
 
   const handleRemoveAvatar = () => {
@@ -201,6 +227,68 @@ export default function ProfilePage() {
             </Button>
           </Form.Item>
         </Form>
+
+        {employee && (
+          <>
+            <Divider />
+            <Title level={5} style={{ marginBottom: 16 }}>
+              <GlobalOutlined style={{ marginRight: 8 }} />
+              Work Location
+            </Title>
+            <Form
+              form={locationForm}
+              layout="vertical"
+              onFinish={handleLocationSubmit}
+              requiredMark={false}
+            >
+              <Form.Item name="country" label="Country">
+                <Select
+                  showSearch
+                  placeholder="Select your country"
+                  optionFilterProp="label"
+                  allowClear
+                  options={COUNTRIES.map((c) => ({
+                    value: c.code,
+                    label: c.name,
+                  }))}
+                />
+              </Form.Item>
+
+              <Form.Item name="timezone" label="Timezone">
+                <Select
+                  showSearch
+                  placeholder="Select your timezone"
+                  optionFilterProp="label"
+                  allowClear
+                  options={TIMEZONES.map((tz) => ({
+                    value: tz.value,
+                    label: `${tz.label} (${tz.offset})`,
+                  }))}
+                />
+              </Form.Item>
+
+              <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={updateEmployee.isPending}
+                  block
+                >
+                  Save Location
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        )}
+
+        {employeeLoading && (
+          <div style={{ textAlign: 'center', padding: 24 }}>
+            <Spin size="small" />
+            <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+              Loading work location...
+            </Text>
+          </div>
+        )}
       </Card>
     </div>
   );
