@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "typecheck": "tsc --noEmit",
-    "prepare": "cd .. && git config core.hooksPath .husky"
+    "prepare": "if [ -d ../.git ]; then cd .. && git config core.hooksPath .husky; fi"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
