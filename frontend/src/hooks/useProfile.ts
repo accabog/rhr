@@ -34,3 +34,38 @@ export function useChangePassword() {
     },
   });
 }
+
+export function useUploadAvatar() {
+  const { message } = App.useApp();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: (file: File) => authApi.uploadAvatar(file),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      message.success('Profile photo updated');
+    },
+    onError: (error: unknown) => {
+      console.error('Avatar upload error:', error);
+      const err = error as { response?: { data?: { detail?: string } }; message?: string };
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to upload photo';
+      message.error(errorMessage);
+    },
+  });
+}
+
+export function useRemoveAvatar() {
+  const { message } = App.useApp();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: () => authApi.removeAvatar(),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      message.success('Profile photo removed');
+    },
+    onError: () => {
+      message.error('Failed to remove photo');
+    },
+  });
+}

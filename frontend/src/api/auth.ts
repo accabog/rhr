@@ -37,4 +37,17 @@ export const authApi = {
       new_password: newPassword,
     });
   },
+
+  uploadAvatar: async (file: File): Promise<User> => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    // Don't set Content-Type header - axios sets it automatically with the boundary
+    const response = await apiClient.patch<User>('/users/me/', formData);
+    return response.data;
+  },
+
+  removeAvatar: async (): Promise<User> => {
+    const response = await apiClient.patch<User>('/users/me/', { avatar: null });
+    return response.data;
+  },
 };
