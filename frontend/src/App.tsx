@@ -11,6 +11,8 @@ import TimesheetsPage from '@/features/timesheets/TimesheetsPage';
 import TimesheetDetailPage from '@/features/timesheets/TimesheetDetailPage';
 import LeavePage from '@/features/leave/LeavePage';
 import ContractsPage from '@/features/contracts/ContractsPage';
+import ProfilePage from '@/features/profile/ProfilePage';
+import SettingsPage from '@/features/settings/SettingsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
@@ -71,7 +73,8 @@ export default function App() {
           <Route path="timesheets/:id" element={<TimesheetDetailPage />} />
           <Route path="leave" element={<LeavePage />} />
           <Route path="contracts" element={<ContractsPage />} />
-          <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         {/* Catch all */}

@@ -25,6 +25,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             "first_name": self.user.first_name,
             "last_name": self.user.last_name,
             "full_name": self.user.full_name,
+            "avatar": self.user.avatar.url if self.user.avatar else None,
+            "is_active": self.user.is_active,
+            "created_at": self.user.created_at.isoformat(),
+            "updated_at": self.user.updated_at.isoformat(),
         }
         # Include user's tenants
         memberships = self.user.tenant_memberships.select_related("tenant").all()

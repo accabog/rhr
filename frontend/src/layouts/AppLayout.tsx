@@ -91,11 +91,13 @@ export default function AppLayout() {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Profile',
+      onClick: () => navigate('/profile'),
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+      onClick: () => navigate('/settings'),
     },
     {
       type: 'divider' as const,
