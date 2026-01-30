@@ -2,6 +2,10 @@
 Tenant models for multi-tenancy support.
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 from django.conf import settings
 from django.db import models
 
@@ -36,7 +40,7 @@ class Tenant(TimestampedModel):
     class Meta:
         ordering = ["name"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -73,10 +77,10 @@ class TenantMembership(TimestampedModel):
         unique_together = ["user", "tenant"]
         ordering = ["-is_default", "tenant__name"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.email} - {self.tenant.name} ({self.role})"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         # Ensure only one default tenant per user
         if self.is_default:
             TenantMembership.objects.filter(user=self.user, is_default=True).exclude(
@@ -123,5 +127,5 @@ class TenantSettings(TimestampedModel):
     date_format = models.CharField(max_length=20, default="YYYY-MM-DD")
     currency = models.CharField(max_length=3, default="USD")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Settings for {self.tenant.name}"

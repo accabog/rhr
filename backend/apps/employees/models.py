@@ -2,6 +2,8 @@
 Employee models for HR management.
 """
 
+from __future__ import annotations
+
 from django.conf import settings
 from django.db import models
 
@@ -36,7 +38,7 @@ class Department(TenantAwareModel):
         ordering = ["name"]
         unique_together = ["tenant", "code"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -64,7 +66,7 @@ class Position(TenantAwareModel):
     class Meta:
         ordering = ["title"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 
@@ -140,9 +142,9 @@ class Employee(TenantAwareModel):
         ordering = ["last_name", "first_name"]
         unique_together = ["tenant", "employee_id"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
