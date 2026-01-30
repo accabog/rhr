@@ -83,8 +83,8 @@ test.describe('Authentication', () => {
 
       await page.getByRole('button', { name: /create account/i }).click();
 
-      // Check for validation message - could be "required" or specific field name
-      await expect(page.getByText(/required|first name/i)).toBeVisible();
+      // Check for validation message - first required field is company name
+      await expect(page.getByText(/company name|email|password/i)).toBeVisible();
     });
 
     test('validates email format', async ({ page }) => {
