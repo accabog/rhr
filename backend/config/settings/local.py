@@ -9,7 +9,7 @@ from .base import *  # noqa: F403
 DEBUG = True
 
 # Include .example.com for subdomain tests
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", ".example.com"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "backend", ".example.com"]
 
 # Database
 DATABASES = {

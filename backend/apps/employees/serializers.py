@@ -66,6 +66,7 @@ class EmployeeListSerializer(serializers.ModelSerializer):
     position_title = serializers.CharField(source="position.title", read_only=True)
     manager_name = serializers.CharField(source="manager.full_name", read_only=True, default=None)
     full_name = serializers.ReadOnlyField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -89,6 +90,15 @@ class EmployeeListSerializer(serializers.ModelSerializer):
             "timezone",
         ]
 
+    def get_avatar(self, obj):
+        """Return employee avatar, falling back to linked user's avatar."""
+        request = self.context.get("request")
+        if obj.avatar:
+            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
+        if obj.user and obj.user.avatar:
+            return request.build_absolute_uri(obj.user.avatar.url) if request else obj.user.avatar.url
+        return None
+
 
 class EmployeeDetailSerializer(serializers.ModelSerializer):
     """Serializer for Employee detail view (all fields)."""
@@ -97,6 +107,7 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
     position_title = serializers.CharField(source="position.title", read_only=True)
     manager_name = serializers.CharField(source="manager.full_name", read_only=True)
     full_name = serializers.ReadOnlyField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -129,3 +140,12 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+    def get_avatar(self, obj):
+        """Return employee avatar, falling back to linked user's avatar."""
+        request = self.context.get("request")
+        if obj.avatar:
+            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
+        if obj.user and obj.user.avatar:
+            return request.build_absolute_uri(obj.user.avatar.url) if request else obj.user.avatar.url
+        return None

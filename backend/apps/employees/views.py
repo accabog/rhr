@@ -68,7 +68,7 @@ class PositionViewSet(TenantAwareViewSet):
 class EmployeeViewSet(TenantAwareViewSet):
     """ViewSet for Employee CRUD."""
 
-    queryset = Employee.objects.select_related("department", "position", "manager")
+    queryset = Employee.objects.select_related("department", "position", "manager", "user")
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["status", "department", "position", "manager"]
     search_fields = ["first_name", "last_name", "email", "employee_id"]
@@ -97,11 +97,11 @@ class EmployeeViewSet(TenantAwareViewSet):
 
         if request.method == "PATCH":
             serializer = EmployeeDetailSerializer(
-                employee, data=request.data, partial=True
+                employee, data=request.data, partial=True, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
 
-        serializer = EmployeeDetailSerializer(employee)
+        serializer = EmployeeDetailSerializer(employee, context={"request": request})
         return Response(serializer.data)
