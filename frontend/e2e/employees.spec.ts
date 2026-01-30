@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 import { login, testUser } from './helpers/auth';
 
 test.describe('Employee Management', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async () => {
     // Skip all tests in this suite if no authenticated session
     test.skip(true, 'Requires authenticated user with employee data');
   });

@@ -3,7 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { testUser, uniqueTestUser, login } from './helpers/auth';
+import { testUser, login } from './helpers/auth';
 
 test.describe('Authentication', () => {
   test.describe('Login', () => {

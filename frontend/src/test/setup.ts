@@ -50,7 +50,7 @@ window.scrollTo = () => {};
 // JSDOM doesn't fully implement getComputedStyle, so we provide a complete mock
 Object.defineProperty(window, 'getComputedStyle', {
   value: (element: Element) => ({
-    getPropertyValue: (prop: string) => '',
+    getPropertyValue: (_prop: string) => '',
     getPropertyPriority: () => '',
     item: () => '',
     length: 0,

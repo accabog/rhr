@@ -3,13 +3,12 @@ Tests for contracts views.
 """
 
 from datetime import date, timedelta
-from decimal import Decimal
 
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from apps.contracts.models import Contract, ContractType
+from apps.contracts.models import Contract
 
 
 @pytest.mark.django_db

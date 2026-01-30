@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 import { login, testUser } from './helpers/auth';
 
 test.describe('Timesheet Management', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async () => {
     test.skip(true, 'Requires authenticated user');
   });
 

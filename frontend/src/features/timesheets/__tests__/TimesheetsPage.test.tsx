@@ -289,11 +289,8 @@ describe('TimesheetsPage', () => {
     });
 
     it('calls generate API when form submitted', async () => {
-      let generateCalled = false;
-
       server.use(
         http.post('/api/v1/timesheets/generate/', async () => {
-          generateCalled = true;
           return HttpResponse.json(createTimesheet({ id: 999 }), { status: 201 });
         })
       );
