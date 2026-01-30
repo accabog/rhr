@@ -4,7 +4,8 @@ Tenant middleware for request-based tenant resolution.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from django.http import HttpRequest, HttpResponse
 
