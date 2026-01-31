@@ -36,7 +36,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2
+    command: sh -c "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2"
+    volumes:
+      - static_volume:/app/static
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - DATABASE_URL=postgres://${POSTGRES_USER:-rhr}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-rhr}

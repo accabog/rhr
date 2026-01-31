@@ -5,9 +5,14 @@ Django production settings.
 import dj_database_url
 from decouple import config
 
+from pathlib import Path
+
 from .base import *  # noqa: F403
 
 DEBUG = False
+
+# Static files - use /app/static for Docker volume mount
+STATIC_ROOT = Path("/app/static")
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="").split(",")
 
