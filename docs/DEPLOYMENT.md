@@ -1,5 +1,7 @@
 # Raptor HR Deployment Guide
 
+> **Staging**: https://staging.raptorhr.com
+
 This guide covers setting up staging and production environments for Raptor HR.
 
 ## Architecture Overview
