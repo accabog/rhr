@@ -30,7 +30,8 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # CORS
-CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="").split(",")
+_cors_origins = config("CORS_ALLOWED_ORIGINS", default="")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
