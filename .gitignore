@@ -85,6 +85,10 @@ celerybeat.pid
 # Docker
 .docker/
 
+# SSL certificates (keep .gitkeep)
+nginx/ssl/*.pem
+ssl/*.pem
+
 # Temporary files
 *.tmp
 *.temp

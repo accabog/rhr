@@ -1,5 +1,3 @@
-# SSL certificates go here
-# Do NOT commit actual certificates to git
-# Use Let's Encrypt or your CA to generate:
-# - fullchain.pem
-# - privkey.pem
+# This directory holds SSL certificates
+# Certificates are not committed to git
+# Place fullchain.pem and privkey.pem here for production
