@@ -84,6 +84,35 @@ jobs:
 
             echo "Database backup completed: /opt/backups/rhr_backup_${BACKUP_DATE}.sql.gz"
 
+      - name: Validate migrations (dry-run)
+        uses: appleboy/ssh-action@master
+        env:
+          BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ needs.prepare.outputs.image_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          envs: BACKEND_IMAGE,GH_TOKEN,GH_ACTOR
+          script: |
+            set -e
+            cd /opt/rhr
+
+            # Login to pull the new image
+            echo "${GH_TOKEN}" | docker login ghcr.io -u "${GH_ACTOR}" --password-stdin
+
+            # Pull the new backend image for validation
+            docker pull "${BACKEND_IMAGE}"
+
+            # Validate migrations without applying them
+            # --plan shows what would be applied
+            docker compose -f docker-compose.prod.yml run --rm \
+              -e BACKEND_IMAGE="${BACKEND_IMAGE}" \
+              backend python manage.py migrate --plan
+
+            echo "Migration validation passed!"
+
       - name: Deploy to production server
         uses: appleboy/ssh-action@master
         env:

@@ -29,5 +29,16 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     exclude: ['**/node_modules/**', '**/e2e/**'],
+    coverage: {
+      // Coverage thresholds - increase incrementally as tests are added
+      // Current baseline: lines=25, functions=45, branches=20, statements=25
+      // Target: lines=50, functions=55, branches=40, statements=50
+      thresholds: {
+        lines: 35,
+        functions: 50,
+        branches: 30,
+        statements: 35,
+      },
+    },
   },
 });

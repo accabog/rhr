@@ -143,6 +143,15 @@ Go to Settings → Secrets and variables → Actions → Secrets:
 | `SECRET_KEY` | Same as in your .env |
 | `POSTGRES_PASSWORD` | Same as in your .env |
 
+**Email Notification Secrets (Optional):**
+
+| Secret | Value |
+|--------|-------|
+| `SMTP_SERVER` | SMTP server address (e.g., `smtp.sendgrid.net`) |
+| `SMTP_USERNAME` | SMTP username (e.g., `apikey` for SendGrid) |
+| `SMTP_PASSWORD` | SMTP password or API key |
+| `DEPLOY_NOTIFY_EMAIL` | Email to receive deployment notifications |
+
 #### Enable Staging Deployments
 
 Go to Settings → Secrets and variables → Actions → Variables:
@@ -160,6 +169,8 @@ Go to Settings → Secrets and variables → Actions → Variables:
 Pushes to `main` trigger this workflow:
 
 1. **CI** runs tests, linting, builds Docker images
+   - Playwright browsers are cached for faster E2E runs
+   - SBOM (Software Bill of Materials) generated for container images
 2. **Docker** pushes images to GitHub Container Registry
 3. **Staging Deploy** (if `STAGING_ENABLED=true`):
    - SSHs into staging server
@@ -167,6 +178,18 @@ Pushes to `main` trigger this workflow:
    - Runs migrations
    - Restarts services
    - Runs health checks
+   - Sends email notification (if SMTP secrets configured)
+
+### Production Deployments
+
+Production deployments are triggered manually or on release:
+
+1. **Prepare** - Determines image tag from input or release
+2. **Database Backup** - Creates backup before deployment (unless skipped)
+3. **Migration Validation** - Dry-run of migrations to catch issues early
+4. **Deploy** - Pulls images, runs migrations, restarts services
+5. **Verify** - Multiple health checks to confirm stability
+6. **Rollback** - Automatic rollback if deployment fails
 
 ### Manual Deployment
 
@@ -332,6 +355,72 @@ docker compose -f docker-compose.prod.yml ps
 
 ---
 
+## CI/CD Pipeline
+
+### Overview
+
+The CI/CD pipeline is implemented via GitHub Actions:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CI Pipeline (ci.yml)                      │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────────┐ │
+│  │ Backend  │   │ Frontend │   │   E2E    │   │    Docker    │ │
+│  │  Tests   │   │  Tests   │   │  Tests   │   │ Build & Push │ │
+│  │ (pytest) │   │ (vitest) │   │(Playwright)│  │   + SBOM    │ │
+│  └────┬─────┘   └────┬─────┘   └────┬─────┘   └──────┬───────┘ │
+│       │              │              │                 │         │
+│       └──────────────┴──────────────┴─────────────────┘         │
+│                              │                                   │
+└──────────────────────────────┼───────────────────────────────────┘
+                               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Staging Deploy (deploy-staging.yml)                 │
+│  ┌────────┐   ┌────────────┐   ┌──────────────┐                 │
+│  │ Deploy │ → │ Smoke Test │ → │ Email Notify │                 │
+│  └────────┘   └────────────┘   └──────────────┘                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### CI Features
+
+| Feature | Description |
+|---------|-------------|
+| **Playwright Caching** | Browser binaries cached between runs (~30-60s saved) |
+| **Parallel E2E Tests** | 4 workers run tests concurrently |
+| **Coverage Gates** | Backend: 70%, Frontend: configurable in vite.config.ts |
+| **SBOM Generation** | Software Bill of Materials for supply chain security |
+| **Build Metrics** | Job results reported as GitHub annotations |
+
+### Production Safeguards
+
+| Feature | Description |
+|---------|-------------|
+| **Migration Dry-Run** | `migrate --plan` validates migrations before applying |
+| **Pre-Deployment Backup** | Database backed up before each deployment |
+| **Automatic Rollback** | Previous images restored if deployment fails |
+| **Health Checks** | Multiple checks verify deployment stability |
+
+### Coverage Thresholds
+
+Frontend coverage thresholds are configured in `frontend/vite.config.ts`:
+
+```typescript
+coverage: {
+  thresholds: {
+    lines: 35,
+    functions: 50,
+    branches: 30,
+    statements: 35,
+  },
+},
+```
+
+Backend threshold is 70% (configured in CI workflow).
+
+---
+
 ## Files Reference
 
 | File | Purpose |
@@ -342,4 +431,6 @@ docker compose -f docker-compose.prod.yml ps
 | `.env.staging.example` | Template for staging .env |
 | `scripts/deploy.sh` | Deployment helper script |
 | `scripts/setup-server.sh` | Server setup script |
-| `.github/workflows/deploy-staging.yml` | GitHub Actions deployment |
+| `.github/workflows/ci.yml` | CI pipeline (tests, builds, SBOM) |
+| `.github/workflows/deploy-staging.yml` | Staging deployment + notifications |
+| `.github/workflows/deploy-production.yml` | Production deployment with safeguards |

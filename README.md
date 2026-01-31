@@ -56,7 +56,10 @@ docker-compose exec backend python manage.py createsuperuser
 ### Infrastructure
 - Docker / Docker Compose
 - GitHub Actions CI/CD
-- Playwright E2E testing
+  - Parallel E2E testing with Playwright caching
+  - SBOM generation for supply chain security
+  - Deployment notifications via email
+  - Migration validation before production deploys
 
 ## Documentation
 

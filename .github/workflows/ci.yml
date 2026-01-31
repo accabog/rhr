@@ -108,8 +108,8 @@ jobs:
 
       - name: Run tests with coverage gate
         working-directory: ./frontend
-        # Coverage thresholds based on current baseline - increase as tests are added
-        run: npm run test -- --run --coverage --coverage.thresholds.lines=25 --coverage.thresholds.functions=45 --coverage.thresholds.branches=20 --coverage.thresholds.statements=25
+        # Coverage thresholds configured in vite.config.ts
+        run: npm run test -- --run --coverage
 
       - name: Build
         working-directory: ./frontend
@@ -180,9 +180,22 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./frontend
         run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright dependencies (cached)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: ./frontend
+        run: npx playwright install-deps chromium
 
       - name: Run database migrations
         working-directory: ./backend
@@ -294,6 +307,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Generate backend SBOM
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:sha-${{ github.sha }}
+          artifact-name: sbom-backend.spdx.json
+
+      - name: Generate frontend SBOM
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:sha-${{ github.sha }}
+          artifact-name: sbom-frontend.spdx.json
+
   # Summary job that all other jobs depend on
   ci-success:
     name: CI Success
@@ -321,3 +348,10 @@ jobs:
             echo "⚠️  E2E tests failed (non-blocking)"
           fi
           echo "All CI jobs passed successfully!"
+
+      - name: Report build metrics
+        run: |
+          echo "::notice title=Backend Tests::Result: ${{ needs.backend.result }}"
+          echo "::notice title=Frontend Tests::Result: ${{ needs.frontend.result }}"
+          echo "::notice title=E2E Tests::Result: ${{ needs.e2e.result }}"
+          echo "::notice title=Docker Build::Result: ${{ needs.docker.result }}"
