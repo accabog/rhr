@@ -67,6 +67,22 @@ export interface Holiday {
   is_recurring: boolean;
   applies_to_all: boolean;
   departments: number[];
+  country: string;
+  source: 'manual' | 'nager_date';
+  local_name: string;
+  holiday_types: string[];
+}
+
+export interface HolidaySyncResult {
+  message: string;
+  created: number;
+  updated: number;
+  countries?: string[];
+}
+
+export interface AvailableCountry {
+  countryCode: string;
+  name: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -167,9 +183,10 @@ export async function fetchLeaveCalendar(
 }
 
 // Holidays
-export async function fetchHolidays(year?: number): Promise<Holiday[]> {
+export async function fetchHolidays(year?: number, country?: string): Promise<Holiday[]> {
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
+  if (country) params.append('country', country);
   const response = await apiClient.get(`/leave/holidays/?${params}`);
   return response.data;
 }
@@ -180,7 +197,7 @@ export async function fetchUpcomingHolidays(): Promise<Holiday[]> {
 }
 
 export async function createHoliday(
-  params: Omit<Holiday, 'id'>
+  params: Omit<Holiday, 'id' | 'source' | 'local_name' | 'holiday_types'>
 ): Promise<Holiday> {
   const response = await apiClient.post('/leave/holidays/', params);
   return response.data;
@@ -188,4 +205,22 @@ export async function createHoliday(
 
 export async function deleteHoliday(id: number): Promise<void> {
   await apiClient.delete(`/leave/holidays/${id}/`);
+}
+
+export async function syncHolidays(country?: string, year?: number): Promise<HolidaySyncResult> {
+  const params = new URLSearchParams();
+  if (country) params.append('country', country);
+  if (year) params.append('year', year.toString());
+  const response = await apiClient.post(`/leave/holidays/sync/?${params}`);
+  return response.data;
+}
+
+export async function fetchAvailableCountries(): Promise<AvailableCountry[]> {
+  const response = await apiClient.get('/leave/holidays/available_countries/');
+  return response.data;
+}
+
+export async function fetchTenantCountries(): Promise<string[]> {
+  const response = await apiClient.get('/leave/holidays/tenant_countries/');
+  return response.data;
 }

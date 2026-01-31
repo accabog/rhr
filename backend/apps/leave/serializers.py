@@ -186,10 +186,13 @@ class HolidaySerializer(serializers.ModelSerializer):
             "applies_to_all",
             "departments",
             "country",
+            "source",
+            "local_name",
+            "holiday_types",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "source", "local_name", "holiday_types", "created_at", "updated_at"]
 
 
 class LeaveBalanceSummarySerializer(serializers.Serializer):

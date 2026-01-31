@@ -5,6 +5,7 @@ Leave management views.
 from datetime import date
 from decimal import Decimal
 
+import requests
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
@@ -13,7 +14,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.core.permissions import IsTenantMember
-from apps.employees.models import Employee
+from apps.employees.models import Department, Employee
 
 from .models import Holiday, LeaveBalance, LeaveRequest, LeaveType
 from .serializers import (
@@ -25,6 +26,7 @@ from .serializers import (
     LeaveRequestSerializer,
     LeaveTypeSerializer,
 )
+from .services import HolidaySyncService, get_available_countries
 
 
 class StandardPagination(PageNumberPagination):
@@ -395,6 +397,11 @@ class HolidayViewSet(viewsets.ModelViewSet):
             if year:
                 queryset = queryset.filter(date__year=year)
 
+            # Filter by country
+            country = self.request.query_params.get("country")
+            if country:
+                queryset = queryset.filter(country=country.upper())
+
             return queryset
         return Holiday.objects.none()
 
@@ -409,3 +416,97 @@ class HolidayViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["post"])
+    def sync(self, request):
+        """
+        Sync holidays from Nager.Date API.
+
+        Query parameters:
+            - country: Optional country code to sync (defaults to all tenant countries)
+            - year: Optional year to sync (defaults to current and next year)
+        """
+        # Check if user has admin permissions
+        membership = request.user.tenant_memberships.filter(
+            tenant=request.tenant
+        ).first()
+        if not membership or membership.role not in ("owner", "admin"):
+            return Response(
+                {"detail": "Only admins can sync holidays"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        country = request.query_params.get("country")
+        year = request.query_params.get("year")
+
+        service = HolidaySyncService(request.tenant)
+
+        try:
+            if country and year:
+                # Sync specific country and year
+                result = service.sync_country(int(year), country.upper())
+                return Response({
+                    "message": f"Synced holidays for {country.upper()}/{year}",
+                    "created": result["created"],
+                    "updated": result["updated"],
+                })
+            elif country:
+                # Sync specific country, default years
+                current_year = date.today().year
+                years = [current_year, current_year + 1]
+                total_created = 0
+                total_updated = 0
+
+                for y in years:
+                    result = service.sync_country(y, country.upper())
+                    total_created += result["created"]
+                    total_updated += result["updated"]
+
+                return Response({
+                    "message": f"Synced holidays for {country.upper()}",
+                    "created": total_created,
+                    "updated": total_updated,
+                })
+            else:
+                # Sync all countries from departments
+                years = [int(year)] if year else None
+                results = service.sync_all_countries(years)
+
+                total_created = sum(r["created"] for r in results.values())
+                total_updated = sum(r["updated"] for r in results.values())
+
+                return Response({
+                    "message": "Synced holidays for all countries",
+                    "countries": list(results.keys()),
+                    "created": total_created,
+                    "updated": total_updated,
+                })
+
+        except requests.RequestException as e:
+            return Response(
+                {"detail": f"Failed to fetch holidays from API: {str(e)}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+    @action(detail=False, methods=["get"])
+    def available_countries(self, request):
+        """Get list of countries available in Nager.Date API."""
+        try:
+            countries = get_available_countries()
+            return Response(countries)
+        except requests.RequestException as e:
+            return Response(
+                {"detail": f"Failed to fetch available countries: {str(e)}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+    @action(detail=False, methods=["get"])
+    def tenant_countries(self, request):
+        """Get countries configured in tenant's departments."""
+        countries = (
+            Department.objects.filter(tenant=request.tenant, is_active=True)
+            .exclude(country="")
+            .values_list("country", flat=True)
+            .distinct()
+        )
+        return Response(list(countries))

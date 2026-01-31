@@ -129,6 +129,11 @@ class LeaveRequest(TenantAwareModel):
 class Holiday(TenantAwareModel):
     """Company or public holidays."""
 
+    SOURCE_CHOICES = [
+        ("manual", "Manual"),
+        ("nager_date", "Nager.Date API"),
+    ]
+
     name = models.CharField(max_length=255)
     date = models.DateField()
     is_recurring = models.BooleanField(
@@ -151,10 +156,39 @@ class Holiday(TenantAwareModel):
         help_text="ISO 3166-1 alpha-2 country code for national holidays",
     )
 
+    # Fields for synced holidays
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default="manual",
+        help_text="Origin of this holiday entry",
+    )
+    external_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="External identifier from API source",
+    )
+    local_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Holiday name in local language",
+    )
+    holiday_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Types of holiday (e.g., Public, Bank, National)",
+    )
+
     objects = TenantAwareManager()
 
     class Meta:
         ordering = ["date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "country", "date", "name"],
+                name="unique_holiday_per_tenant_country_date",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.date})"

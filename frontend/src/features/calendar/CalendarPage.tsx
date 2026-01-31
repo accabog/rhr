@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Calendar, Badge, Card, Typography, Spin, Tooltip, Tag } from 'antd';
+import { Calendar, Badge, Card, Typography, Spin, Tooltip, Tag, Button, Space } from 'antd';
+import { SyncOutlined, GlobalOutlined } from '@ant-design/icons';
 import type { CalendarProps } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { useLeaveCalendar, useHolidays } from '@/hooks/useLeave';
+import { useLeaveCalendar, useHolidays, useSyncHolidays } from '@/hooks/useLeave';
+import { useCurrentEmployee } from '@/hooks/useEmployees';
+import { useAuthStore } from '@/stores/authStore';
 import type { LeaveRequest, Holiday } from '@/api/leave';
 
 const { Title, Text } = Typography;
@@ -20,12 +23,27 @@ const statusBadgeMap: Record<string, BadgeStatus> = {
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState<Dayjs>(dayjs());
 
+  // Get current employee to determine country for holiday filtering
+  const { data: currentEmployee } = useCurrentEmployee();
+  const userCountry = currentEmployee?.department_country;
+
+  // Get auth state to check for admin permissions
+  const tenantMemberships = useAuthStore((state) => state.tenantMemberships);
+  const currentTenant = useAuthStore((state) => state.currentTenant);
+  const currentMembership = tenantMemberships.find(
+    (m) => m.tenant.id === currentTenant?.id
+  );
+  const isAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
+
+  // Sync holidays mutation
+  const syncHolidays = useSyncHolidays();
+
   // Calculate date range for the current month view (with buffer for adjacent months)
   const startDate = currentDate.startOf('month').subtract(7, 'day').format('YYYY-MM-DD');
   const endDate = currentDate.endOf('month').add(7, 'day').format('YYYY-MM-DD');
 
   const { data: leaveRequests, isLoading: isLoadingLeave } = useLeaveCalendar(startDate, endDate);
-  const { data: holidays, isLoading: isLoadingHolidays } = useHolidays(currentDate.year());
+  const { data: holidays, isLoading: isLoadingHolidays } = useHolidays(currentDate.year(), userCountry);
 
   // Group leave requests by date for efficient lookup
   const leaveByDate = useMemo(() => {
@@ -79,7 +97,17 @@ export default function CalendarPage() {
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
         {dayHolidays.map((holiday) => (
           <li key={`holiday-${holiday.id}`}>
-            <Tooltip title={holiday.name}>
+            <Tooltip
+              title={
+                <div>
+                  <div><strong>{holiday.name}</strong></div>
+                  {holiday.local_name && holiday.local_name !== holiday.name && (
+                    <div>{holiday.local_name}</div>
+                  )}
+                  {holiday.country && <Tag style={{ fontSize: 10 }}>{holiday.country}</Tag>}
+                </div>
+              }
+            >
               <Badge status="error" text={<Text ellipsis style={{ fontSize: 12 }}>{holiday.name}</Text>} />
             </Tooltip>
           </li>
@@ -135,12 +163,36 @@ export default function CalendarPage() {
 
   const isLoading = isLoadingLeave || isLoadingHolidays;
 
+  const handleSyncHolidays = () => {
+    syncHolidays.mutate({ country: userCountry });
+  };
+
   return (
     <div>
-      <Title level={2}>Leave Calendar</Title>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-        View leave schedules for you and your department members.
-      </Text>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+        <div>
+          <Title level={2} style={{ marginBottom: 8 }}>Leave Calendar</Title>
+          <Space>
+            <Text type="secondary">
+              View leave schedules for you and your department members.
+            </Text>
+            {userCountry && (
+              <Tag icon={<GlobalOutlined />} color="blue">
+                {userCountry} Holidays
+              </Tag>
+            )}
+          </Space>
+        </div>
+        {isAdmin && (
+          <Button
+            icon={<SyncOutlined />}
+            onClick={handleSyncHolidays}
+            loading={syncHolidays.isPending}
+          >
+            Sync Holidays
+          </Button>
+        )}
+      </div>
 
       <Card>
         {isLoading ? (

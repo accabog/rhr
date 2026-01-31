@@ -18,6 +18,9 @@ import {
   fetchLeaveCalendar,
   fetchHolidays,
   fetchUpcomingHolidays,
+  syncHolidays,
+  fetchAvailableCountries,
+  fetchTenantCountries,
   type CreateLeaveRequestParams,
 } from '@/api/leave';
 
@@ -35,8 +38,10 @@ export const leaveKeys = {
   request: (id: number) => [...leaveKeys.requests(), id] as const,
   calendar: (start: string, end: string) =>
     [...leaveKeys.all, 'calendar', start, end] as const,
-  holidays: (year?: number) => [...leaveKeys.all, 'holidays', year] as const,
+  holidays: (year?: number, country?: string) => [...leaveKeys.all, 'holidays', year, country] as const,
   upcomingHolidays: () => [...leaveKeys.all, 'holidays', 'upcoming'] as const,
+  availableCountries: () => [...leaveKeys.all, 'holidays', 'available-countries'] as const,
+  tenantCountries: () => [...leaveKeys.all, 'holidays', 'tenant-countries'] as const,
 };
 
 // Leave Types
@@ -168,10 +173,10 @@ export function useLeaveCalendar(startDate: string, endDate: string) {
 }
 
 // Holidays
-export function useHolidays(year?: number) {
+export function useHolidays(year?: number, country?: string) {
   return useQuery({
-    queryKey: leaveKeys.holidays(year),
-    queryFn: () => fetchHolidays(year),
+    queryKey: leaveKeys.holidays(year, country),
+    queryFn: () => fetchHolidays(year, country),
   });
 }
 
@@ -179,5 +184,37 @@ export function useUpcomingHolidays() {
   return useQuery({
     queryKey: leaveKeys.upcomingHolidays(),
     queryFn: fetchUpcomingHolidays,
+  });
+}
+
+export function useSyncHolidays() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ country, year }: { country?: string; year?: number } = {}) =>
+      syncHolidays(country, year),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: leaveKeys.all });
+      message.success(`Synced ${data.created} new holidays`);
+    },
+    onError: (error: Error & { response?: { data?: { detail?: string } } }) => {
+      message.error(
+        error.response?.data?.detail || 'Failed to sync holidays'
+      );
+    },
+  });
+}
+
+export function useAvailableCountries() {
+  return useQuery({
+    queryKey: leaveKeys.availableCountries(),
+    queryFn: fetchAvailableCountries,
+  });
+}
+
+export function useTenantCountries() {
+  return useQuery({
+    queryKey: leaveKeys.tenantCountries(),
+    queryFn: fetchTenantCountries,
   });
 }
