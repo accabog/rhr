@@ -41,10 +41,6 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@raptorhr.com")
 
-# Logging
-LOGGING["handlers"]["file"] = {  # noqa: F405
-    "class": "logging.FileHandler",
-    "filename": "/var/log/rhr/django.log",
-    "formatter": "verbose",
-}
-LOGGING["root"]["handlers"].append("file")  # noqa: F405
+# Logging - use console for Docker (captured by docker logs)
+# Override root logger to use console with INFO level in production
+LOGGING["root"]["level"] = "INFO"  # noqa: F405
