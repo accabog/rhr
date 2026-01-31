@@ -39,6 +39,11 @@ export interface LeaveBalanceSummary {
   pending_days: string;
 }
 
+export interface ExcludedHoliday {
+  date: string;
+  name: string;
+}
+
 export interface LeaveRequest {
   id: number;
   employee: number;
@@ -57,6 +62,8 @@ export interface LeaveRequest {
   reviewed_at: string | null;
   review_notes: string;
   days_requested: number;
+  total_calendar_days: number;
+  holidays_excluded: ExcludedHoliday[];
   created_at: string;
 }
 

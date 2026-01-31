@@ -55,6 +55,13 @@ class LeaveBalanceSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "used_days", "created_at", "updated_at"]
 
 
+class ExcludedHolidaySerializer(serializers.Serializer):
+    """Serializer for holidays excluded from leave calculation."""
+
+    date = serializers.DateField()
+    name = serializers.CharField()
+
+
 class LeaveRequestSerializer(serializers.ModelSerializer):
     """Serializer for LeaveRequest model."""
 
@@ -65,6 +72,8 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         source="reviewed_by.full_name", read_only=True, allow_null=True
     )
     days_requested = serializers.ReadOnlyField()
+    total_calendar_days = serializers.ReadOnlyField()
+    holidays_excluded = serializers.SerializerMethodField()
 
     class Meta:
         model = LeaveRequest
@@ -86,9 +95,16 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             "reviewed_at",
             "review_notes",
             "days_requested",
+            "total_calendar_days",
+            "holidays_excluded",
             "created_at",
             "updated_at",
         ]
+
+    def get_holidays_excluded(self, obj):
+        """Return list of holidays excluded from this leave request."""
+        holidays = obj.get_applicable_holidays()
+        return ExcludedHolidaySerializer(holidays, many=True).data
         read_only_fields = [
             "id",
             "status",

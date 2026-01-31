@@ -118,12 +118,82 @@ class LeaveRequest(TenantAwareModel):
     def __str__(self):
         return f"{self.employee} - {self.leave_type} ({self.start_date} to {self.end_date})"
 
+    def get_applicable_holidays(self):
+        """
+        Get holidays that fall within this leave request's date range
+        and apply to the employee based on their department's country.
+
+        Returns:
+            QuerySet of Holiday objects that should be excluded from days calculation
+        """
+        # Import here to avoid circular imports
+        from apps.leave.models import Holiday
+
+        if not self.tenant_id or not self.employee_id:
+            return Holiday.objects.none()
+
+        # Get employee's department country
+        employee_country = None
+        if self.employee.department and self.employee.department.country:
+            employee_country = self.employee.department.country
+
+        # Query holidays within the date range
+        holidays = Holiday.objects.filter(
+            tenant=self.tenant,
+            date__gte=self.start_date,
+            date__lte=self.end_date,
+        )
+
+        if employee_country:
+            # Include holidays that either:
+            # 1. Match the employee's country, OR
+            # 2. Have no country set (company-wide holidays)
+            from django.db.models import Q
+
+            holidays = holidays.filter(Q(country=employee_country) | Q(country=""))
+        else:
+            # No country on department, only include company-wide holidays
+            holidays = holidays.filter(country="")
+
+        # TODO: Further filter by applies_to_all / departments if needed
+        # For now, we include all matching holidays
+
+        return holidays
+
     @property
-    def days_requested(self):
+    def holidays_excluded(self):
+        """List of holiday dates that are excluded from this leave request."""
+        return list(self.get_applicable_holidays().values_list("date", flat=True))
+
+    @property
+    def holidays_excluded_count(self):
+        """Number of holidays excluded from this leave request."""
+        return self.get_applicable_holidays().count()
+
+    @property
+    def total_calendar_days(self):
+        """Total calendar days in the leave period (without any exclusions)."""
         if self.is_half_day:
             return 0.5
         delta = self.end_date - self.start_date
         return delta.days + 1
+
+    @property
+    def days_requested(self):
+        """
+        Working days requested, excluding national/company holidays.
+        This is the actual number of days deducted from leave balance.
+        """
+        if self.is_half_day:
+            # Half-day: only exclude if that specific date is a holiday
+            if self.get_applicable_holidays().filter(date=self.start_date).exists():
+                return 0  # It's a holiday, no leave needed
+            return 0.5
+
+        total_days = self.total_calendar_days
+        excluded_holidays = self.holidays_excluded_count
+
+        return max(0, total_days - excluded_holidays)
 
 
 class Holiday(TenantAwareModel):
