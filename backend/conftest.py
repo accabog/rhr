@@ -137,6 +137,27 @@ def authenticated_tenant_client(api_client, user, tenant, tenant_membership):
     return api_client
 
 
+@pytest.fixture
+def tenant_membership_employee(db, user, tenant):
+    """Create a regular employee-role tenant membership (no approval permissions)."""
+    from apps.tenants.models import TenantMembership
+
+    return TenantMembership.objects.create(
+        user=user,
+        tenant=tenant,
+        role="employee",
+        is_default=True,
+    )
+
+
+@pytest.fixture
+def authenticated_employee_client(api_client, user, tenant, tenant_membership_employee):
+    """Return an authenticated API client with employee role (no approval permissions)."""
+    api_client.force_authenticate(user=user)
+    api_client.credentials(HTTP_X_TENANT_ID=str(tenant.id))
+    return api_client
+
+
 # ============================================================================
 # Organization Fixtures (Department, Position)
 # ============================================================================

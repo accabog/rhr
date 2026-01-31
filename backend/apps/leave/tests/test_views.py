@@ -442,6 +442,103 @@ class TestPendingApproval:
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == pending.id
 
+    def test_pending_approval_forbidden_for_employees(
+        self, authenticated_employee_client, tenant, employee, leave_type
+    ):
+        """Test that regular employees cannot view pending approvals."""
+        LeaveRequest.objects.create(
+            tenant=tenant,
+            employee=employee,
+            leave_type=leave_type,
+            start_date=date.today() + timedelta(days=7),
+            end_date=date.today() + timedelta(days=9),
+            status="pending",
+        )
+
+        url = reverse("leaverequest-pending-approval")
+        response = authenticated_employee_client.get(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+
+@pytest.mark.django_db
+class TestApprovalAuthorization:
+    """Tests for leave approval authorization."""
+
+    def test_employee_cannot_approve_request(
+        self, authenticated_employee_client, tenant, employee, leave_type
+    ):
+        """Test that regular employees cannot approve leave requests."""
+        request = LeaveRequest.objects.create(
+            tenant=tenant,
+            employee=employee,
+            leave_type=leave_type,
+            start_date=date.today() + timedelta(days=7),
+            end_date=date.today() + timedelta(days=9),
+            status="pending",
+        )
+
+        url = reverse("leaverequest-approve", kwargs={"pk": request.id})
+        response = authenticated_employee_client.post(url, {})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+        # Verify request was not approved
+        request.refresh_from_db()
+        assert request.status == "pending"
+
+    def test_employee_cannot_reject_request(
+        self, authenticated_employee_client, tenant, employee, leave_type
+    ):
+        """Test that regular employees cannot reject leave requests."""
+        request = LeaveRequest.objects.create(
+            tenant=tenant,
+            employee=employee,
+            leave_type=leave_type,
+            start_date=date.today() + timedelta(days=7),
+            end_date=date.today() + timedelta(days=9),
+            status="pending",
+        )
+
+        url = reverse("leaverequest-reject", kwargs={"pk": request.id})
+        response = authenticated_employee_client.post(url, {"notes": "Denied"})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+        # Verify request was not rejected
+        request.refresh_from_db()
+        assert request.status == "pending"
+
+    def test_manager_can_approve_request(
+        self, authenticated_tenant_client, tenant, employee_with_user, leave_type
+    ):
+        """Test that managers/owners can approve leave requests."""
+        LeaveBalance.objects.create(
+            tenant=tenant,
+            employee=employee_with_user,
+            leave_type=leave_type,
+            year=date.today().year,
+            entitled_days=Decimal("20.0"),
+        )
+
+        request = LeaveRequest.objects.create(
+            tenant=tenant,
+            employee=employee_with_user,
+            leave_type=leave_type,
+            start_date=date.today() + timedelta(days=7),
+            end_date=date.today() + timedelta(days=9),
+            status="pending",
+        )
+
+        url = reverse("leaverequest-approve", kwargs={"pk": request.id})
+        response = authenticated_tenant_client.post(url, {})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["status"] == "approved"
+
 
 @pytest.mark.django_db
 class TestCalendar:

@@ -222,6 +222,12 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def pending_approval(self, request):
         """Get leave requests pending approval (for managers)."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can view pending approvals"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         queryset = self.get_queryset().filter(status="pending")
 
         page = self.paginate_queryset(queryset)
@@ -235,6 +241,12 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a leave request."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can approve leave requests"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         leave_request = self.get_object()
         reviewer = self._get_current_employee(request)
 
@@ -267,6 +279,12 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
         """Reject a leave request."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can reject leave requests"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         leave_request = self.get_object()
         reviewer = self._get_current_employee(request)
 
@@ -356,6 +374,13 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             user=request.user,
             status="active",
         ).first()
+
+    def _has_approval_permission(self, request):
+        """Check if user has permission to approve/reject leave requests."""
+        membership = request.user.tenant_memberships.filter(
+            tenant=request.tenant
+        ).first()
+        return membership and membership.role in ("owner", "admin", "manager")
 
     def _update_leave_balance(self, leave_request, add=True):
         """Update leave balance when request is approved/cancelled."""
