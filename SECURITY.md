@@ -104,4 +104,4 @@ We currently do not have a formal bug bounty program, but we appreciate responsi
 
 ## Contact
 
-For security-related questions, contact: **security@your-org.com**
+For security-related questions, contact: **security@raptorhr.com**
