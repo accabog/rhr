@@ -193,6 +193,12 @@ clone_repository() {
         sudo -u ubuntu git checkout main
         sudo -u ubuntu git pull origin main
     else
+        # Clean directory if it has files but no git repo (e.g., downloaded scripts)
+        if [ "$(ls -A $PROJECT_DIR 2>/dev/null)" ]; then
+            log_warn "Directory not empty, cleaning before clone..."
+            rm -rf "$PROJECT_DIR"/*
+            rm -rf "$PROJECT_DIR"/.[!.]* 2>/dev/null || true
+        fi
         cd "$PROJECT_DIR"
         sudo -u ubuntu git clone "$repo_url" .
     fi
