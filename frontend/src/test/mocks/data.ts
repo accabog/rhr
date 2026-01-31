@@ -237,6 +237,43 @@ export const createContract = (
   ...overrides,
 });
 
+export interface ContractListItem {
+  id: number;
+  employee: number;
+  employee_name: string;
+  contract_type: number;
+  contract_type_name: string;
+  title: string;
+  start_date: string;
+  end_date: string | null;
+  status: 'draft' | 'active' | 'expired' | 'terminated';
+  salary: string | null;
+  salary_currency: string;
+  salary_period: string;
+  is_expiring_soon: boolean;
+  created_at: string;
+}
+
+export const createContractListItem = (
+  overrides: Partial<ContractListItem> = {}
+): ContractListItem => ({
+  id: nextId(),
+  employee: 1,
+  employee_name: 'John Doe',
+  contract_type: 1,
+  contract_type_name: 'Full-time',
+  title: 'Employment Contract',
+  start_date: '2024-01-01',
+  end_date: '2025-01-01',
+  status: 'active',
+  salary: '60000.00',
+  salary_currency: 'USD',
+  salary_period: 'yearly',
+  is_expiring_soon: false,
+  created_at: '2024-01-01T00:00:00Z',
+  ...overrides,
+});
+
 // Paginated response helper
 export const paginatedResponse = <T>(
   results: T[],
