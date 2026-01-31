@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Dropdown, Avatar, Space, Typography, theme } from 'antd';
 import {
@@ -67,6 +67,8 @@ const menuItems = [
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const [iconError, setIconError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -74,6 +76,15 @@ export default function AppLayout() {
   } = theme.useToken();
 
   const { user, currentTenant, refreshToken, logout } = useAuthStore();
+
+  // Reset error states when tenant logos change
+  useEffect(() => {
+    setLogoError(false);
+  }, [currentTenant?.logo]);
+
+  useEffect(() => {
+    setIconError(false);
+  }, [currentTenant?.logo_icon]);
 
   const handleLogout = async () => {
     if (refreshToken) {
@@ -129,12 +140,80 @@ export default function AppLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            padding: collapsed ? '0 8px' : '0 16px',
             borderBottom: '1px solid #f0f0f0',
+            overflow: 'hidden',
           }}
         >
-          <Text strong style={{ fontSize: collapsed ? 14 : 20 }}>
-            {collapsed ? 'RHR' : 'Raptor HR'}
-          </Text>
+          {collapsed ? (
+            // Collapsed: Show icon, fall back to logo, then text
+            currentTenant?.logo_icon && !iconError ? (
+              <img
+                src={currentTenant.logo_icon}
+                alt={currentTenant.name}
+                onError={() => setIconError(true)}
+                style={{
+                  height: 36,
+                  width: 36,
+                  objectFit: 'contain',
+                  borderRadius: '50%',
+                }}
+              />
+            ) : currentTenant?.logo && !logoError ? (
+              <img
+                src={currentTenant.logo}
+                alt={currentTenant.name}
+                onError={() => setLogoError(true)}
+                style={{
+                  height: 32,
+                  maxWidth: 48,
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <Text
+                strong
+                style={{
+                  fontSize: 14,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 48,
+                }}
+                title={currentTenant?.name}
+              >
+                {currentTenant?.name?.substring(0, 3).toUpperCase() || 'RHR'}
+              </Text>
+            )
+          ) : (
+            // Expanded: Show full logo, fall back to text
+            currentTenant?.logo && !logoError ? (
+              <img
+                src={currentTenant.logo}
+                alt={currentTenant.name}
+                onError={() => setLogoError(true)}
+                style={{
+                  height: 40,
+                  maxWidth: 168,
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <Text
+                strong
+                style={{
+                  fontSize: 18,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 168,
+                }}
+                title={currentTenant?.name}
+              >
+                {currentTenant?.name || 'Raptor HR'}
+              </Text>
+            )
+          )}
         </div>
         <Menu
           mode="inline"

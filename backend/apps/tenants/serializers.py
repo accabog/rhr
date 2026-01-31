@@ -19,6 +19,7 @@ class TenantSerializer(serializers.ModelSerializer):
             "domain",
             "is_active",
             "logo",
+            "logo_icon",
             "plan",
             "max_employees",
             "created_at",

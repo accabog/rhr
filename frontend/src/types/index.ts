@@ -20,6 +20,7 @@ export interface Tenant {
   domain?: string;
   is_active: boolean;
   logo?: string;
+  logo_icon?: string;
   plan: 'free' | 'starter' | 'professional' | 'enterprise';
   max_employees: number;
   created_at: string;

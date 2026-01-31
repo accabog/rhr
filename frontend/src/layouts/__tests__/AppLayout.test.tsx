@@ -65,16 +65,19 @@ describe('AppLayout', () => {
   });
 
   describe('rendering', () => {
-    it('renders logo text', () => {
+    it('renders tenant name in sidebar when expanded', () => {
       renderLayout();
 
-      expect(screen.getByText('Raptor HR')).toBeInTheDocument();
+      // Tenant name is shown in sidebar (Test Company appears twice - sidebar and header)
+      expect(screen.getAllByText('Test Company').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders tenant name in header', () => {
       renderLayout();
 
-      expect(screen.getByText('Test Company')).toBeInTheDocument();
+      // Test Company appears in both sidebar (branding) and header
+      const tenantNames = screen.getAllByText('Test Company');
+      expect(tenantNames.length).toBe(2);
     });
 
     it('renders user name in header', () => {
@@ -176,7 +179,7 @@ describe('AppLayout', () => {
       });
     });
 
-    it('shows abbreviated logo when collapsed', async () => {
+    it('shows abbreviated tenant name when collapsed', async () => {
       const user = userEvent.setup();
       renderLayout();
 
@@ -185,8 +188,9 @@ describe('AppLayout', () => {
         await user.click(collapseButton);
       }
 
+      // Shows first 3 letters of tenant name when collapsed
       await waitFor(() => {
-        expect(screen.getByText('RHR')).toBeInTheDocument();
+        expect(screen.getByText('TES')).toBeInTheDocument();
       });
     });
   });
@@ -282,6 +286,56 @@ describe('AppLayout', () => {
       );
 
       expect(screen.queryByText('Test Company')).not.toBeInTheDocument();
+    });
+
+    it('shows Raptor HR as fallback when no tenant', () => {
+      useAuthStore.setState({
+        user: mockUser,
+        currentTenant: null,
+        isAuthenticated: true,
+      });
+
+      const Wrapper = createWrapper();
+      render(
+        <MemoryRouter>
+          <Wrapper>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<div>Content</div>} />
+              </Route>
+            </Routes>
+          </Wrapper>
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText('Raptor HR')).toBeInTheDocument();
+    });
+  });
+
+  describe('tenant with logo', () => {
+    it('shows logo image when tenant has logo', () => {
+      useAuthStore.setState({
+        user: mockUser,
+        currentTenant: { ...mockTenant, logo: 'https://example.com/logo.png' },
+        isAuthenticated: true,
+      });
+
+      const Wrapper = createWrapper();
+      render(
+        <MemoryRouter>
+          <Wrapper>
+            <Routes>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<div>Content</div>} />
+              </Route>
+            </Routes>
+          </Wrapper>
+        </MemoryRouter>
+      );
+
+      const logoImg = document.querySelector('img[alt="Test Company"]');
+      expect(logoImg).toBeInTheDocument();
+      expect(logoImg).toHaveAttribute('src', 'https://example.com/logo.png');
     });
   });
 

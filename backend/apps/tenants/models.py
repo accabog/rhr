@@ -22,7 +22,18 @@ class Tenant(TimestampedModel):
     slug = models.SlugField(unique=True, max_length=100)
     domain = models.CharField(max_length=255, blank=True, null=True, unique=True)
     is_active = models.BooleanField(default=True)
-    logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
+    logo = models.ImageField(
+        upload_to="tenant_logos/",
+        blank=True,
+        null=True,
+        help_text="Full logo displayed when sidebar is expanded",
+    )
+    logo_icon = models.ImageField(
+        upload_to="tenant_logos/icons/",
+        blank=True,
+        null=True,
+        help_text="Compact icon/logo displayed when sidebar is collapsed",
+    )
 
     # Subscription/billing fields (for future use)
     plan = models.CharField(
