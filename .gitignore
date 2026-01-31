@@ -90,3 +90,4 @@ celerybeat.pid
 *.temp
 .temp/
 tmp/
+.playwright-mcp/
