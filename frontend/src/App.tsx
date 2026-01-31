@@ -10,6 +10,7 @@ import TimeTrackingPage from '@/features/timetracking/TimeTrackingPage';
 import TimesheetsPage from '@/features/timesheets/TimesheetsPage';
 import TimesheetDetailPage from '@/features/timesheets/TimesheetDetailPage';
 import LeavePage from '@/features/leave/LeavePage';
+import CalendarPage from '@/features/calendar/CalendarPage';
 import ContractsPage from '@/features/contracts/ContractsPage';
 import ProfilePage from '@/features/profile/ProfilePage';
 import SettingsPage from '@/features/settings/SettingsPage';
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="timesheets" element={<TimesheetsPage />} />
           <Route path="timesheets/:id" element={<TimesheetDetailPage />} />
           <Route path="leave" element={<LeavePage />} />
+          <Route path="calendar" element={<CalendarPage />} />
           <Route path="contracts" element={<ContractsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="profile" element={<ProfilePage />} />

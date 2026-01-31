@@ -19,6 +19,7 @@ import {
   CalendarOutlined,
 } from '@ant-design/icons';
 import { useEmployee, useDeleteEmployee } from '@/hooks/useEmployees';
+import DocumentSection from '@/components/DocumentSection';
 
 const { Title, Text } = Typography;
 
@@ -150,6 +151,13 @@ export default function EmployeeDetailDrawer({
       children: (
         <Text type="secondary">Employment contracts will appear here.</Text>
       ),
+    },
+    {
+      key: 'documents',
+      label: 'Documents',
+      children: employeeId ? (
+        <DocumentSection contentType="employee" objectId={employeeId} title="" />
+      ) : null,
     },
   ];
 

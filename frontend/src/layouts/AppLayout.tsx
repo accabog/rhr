@@ -7,6 +7,7 @@ import {
   ClockCircleOutlined,
   FileTextOutlined,
   CalendarOutlined,
+  ScheduleOutlined,
   FileProtectOutlined,
   SettingOutlined,
   LogoutOutlined,
@@ -53,14 +54,14 @@ const menuItems = [
     label: 'Leave',
   },
   {
+    key: '/calendar',
+    icon: <ScheduleOutlined />,
+    label: 'Calendar',
+  },
+  {
     key: '/contracts',
     icon: <FileProtectOutlined />,
     label: 'Contracts',
-  },
-  {
-    key: '/settings',
-    icon: <SettingOutlined />,
-    label: 'Settings',
   },
 ];
 

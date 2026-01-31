@@ -2,6 +2,7 @@
 Leave management models for PTO, sick leave, holidays, etc.
 """
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from apps.core.models import TenantAwareManager, TenantAwareModel
@@ -105,6 +106,9 @@ class LeaveRequest(TenantAwareModel):
     )
     reviewed_at = models.DateTimeField(null=True, blank=True)
     review_notes = models.TextField(blank=True)
+
+    # Documents (e.g., medical certificates)
+    documents = GenericRelation("core.Document")
 
     objects = TenantAwareManager()
 
