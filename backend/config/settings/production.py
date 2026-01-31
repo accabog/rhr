@@ -2,10 +2,10 @@
 Django production settings.
 """
 
+from pathlib import Path
+
 import dj_database_url
 from decouple import config
-
-from pathlib import Path
 
 from .base import *  # noqa: F403
 
