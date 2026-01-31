@@ -104,15 +104,17 @@ jobs:
     needs: deploy
 
     steps:
-      - name: Health check
-        run: |
-          # Wait for deployment to stabilize
-          sleep 10
+      - name: Health check via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            # Check API health internally (bypasses Cloudflare)
+            curl -f http://localhost/api/v1/health/ || exit 1
 
-          # Check API health
-          curl -f https://staging.raptorhr.com/api/v1/health/ || exit 1
+            # Check frontend
+            curl -f http://localhost/ || exit 1
 
-          # Check frontend
-          curl -f https://staging.raptorhr.com/ || exit 1
-
-          echo "Smoke tests passed!"
+            echo "Smoke tests passed!"
