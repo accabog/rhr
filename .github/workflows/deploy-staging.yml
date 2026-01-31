@@ -110,7 +110,7 @@ jobs:
           sleep 10
 
           # Check API health
-          curl -f https://staging.raptorhr.com/api/health/ || exit 1
+          curl -f https://staging.raptorhr.com/api/v1/health/ || exit 1
 
           # Check frontend
           curl -f https://staging.raptorhr.com/ || exit 1
