@@ -169,6 +169,10 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 | POST | `/auth/token/refresh/` | Refresh access token |
 | POST | `/auth/logout/` | Invalidate refresh token |
 | GET | `/auth/me/` | Get current user info |
+| PATCH | `/auth/me/` | Update current user profile |
+| POST | `/auth/me/avatar/` | Upload user avatar |
+| DELETE | `/auth/me/avatar/` | Remove user avatar |
+| POST | `/auth/change-password/` | Change user password |
 
 ### Tenants
 
@@ -178,6 +182,10 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 | GET | `/tenants/{slug}/` | Get tenant details |
 | POST | `/tenants/` | Create new tenant |
 | PUT | `/tenants/{slug}/` | Update tenant |
+| POST | `/tenants/{slug}/logo/` | Upload tenant logo |
+| DELETE | `/tenants/{slug}/logo/` | Remove tenant logo |
+| POST | `/tenants/{slug}/logo-icon/` | Upload tenant icon |
+| DELETE | `/tenants/{slug}/logo-icon/` | Remove tenant icon |
 
 ### Employees
 
@@ -245,6 +253,8 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 | POST | `/leave-requests/{id}/reject/` | Reject request |
 | POST | `/leave-requests/{id}/cancel/` | Cancel request |
 | GET | `/holidays/` | List holidays |
+| POST | `/holidays/sync/` | Sync national holidays from Nager.Date |
+| GET | `/holidays/upcoming/` | List upcoming holidays |
 
 ### Contracts
 
@@ -256,6 +266,18 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 | PUT | `/contracts/{id}/` | Update contract |
 | DELETE | `/contracts/{id}/` | Delete contract |
 | GET | `/contract-types/` | List contract types |
+
+### Documents
+
+Documents use polymorphic relations and can be attached to any entity (Employee, LeaveRequest, Contract, etc.).
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/documents/` | List documents (filterable by entity) |
+| POST | `/documents/` | Upload a document |
+| GET | `/documents/{id}/` | Get document details |
+| DELETE | `/documents/{id}/` | Delete a document |
+| GET | `/documents/{id}/download/` | Download document file |
 
 ## Error Codes
 
@@ -336,5 +358,51 @@ curl -X POST http://localhost:8000/api/v1/time-entries/ \
     "break_minutes": 60,
     "entry_type": 1,
     "notes": "Regular workday"
+  }'
+```
+
+### Upload a Document
+
+```bash
+curl -X POST http://localhost:8000/api/v1/documents/ \
+  -H "Authorization: Bearer <token>" \
+  -H "X-Tenant-ID: acme-corp" \
+  -F "file=@/path/to/document.pdf" \
+  -F "name=Employment Contract" \
+  -F "description=Signed employment contract" \
+  -F "content_type_model=employee" \
+  -F "object_id=1"
+```
+
+### Upload Tenant Logo
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tenants/acme-corp/logo/ \
+  -H "Authorization: Bearer <token>" \
+  -H "X-Tenant-ID: acme-corp" \
+  -F "logo=@/path/to/logo.png"
+```
+
+### Sync National Holidays
+
+```bash
+curl -X POST http://localhost:8000/api/v1/holidays/sync/ \
+  -H "Authorization: Bearer <token>" \
+  -H "X-Tenant-ID: acme-corp" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "country": "US"
+  }'
+```
+
+### Update User Profile
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/auth/me/ \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "John",
+    "last_name": "Smith"
   }'
 ```

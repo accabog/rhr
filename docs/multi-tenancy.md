@@ -327,6 +327,47 @@ class EmployeeSerializer(serializers.ModelSerializer):
             )
 ```
 
+## Tenant Branding
+
+Each tenant can customize their branding with logos displayed in the sidebar.
+
+### Logo Fields
+
+| Field | Purpose | Recommended Size |
+|-------|---------|------------------|
+| `logo` | Full logo shown when sidebar is expanded | 200×50 pixels, horizontal |
+| `logo_icon` | Compact icon shown when sidebar is collapsed | 60×60 pixels, square or circular |
+
+### Upload Paths
+
+Tenant logos are stored in:
+- Full logos: `media/tenant_logos/`
+- Icons: `media/tenant_logos/icons/`
+
+### API Endpoints
+
+```http
+# Upload full logo
+POST /api/v1/tenants/{slug}/logo/
+Content-Type: multipart/form-data
+logo: <image file>
+
+# Remove full logo
+DELETE /api/v1/tenants/{slug}/logo/
+
+# Upload icon
+POST /api/v1/tenants/{slug}/logo-icon/
+Content-Type: multipart/form-data
+logo_icon: <image file>
+
+# Remove icon
+DELETE /api/v1/tenants/{slug}/logo-icon/
+```
+
+### Frontend Usage
+
+The `SettingsPage` (Company tab) provides a UI for admins/owners to manage branding. Logos are displayed in `AppLayout`'s sidebar component.
+
 ## Testing Multi-Tenancy
 
 ```python

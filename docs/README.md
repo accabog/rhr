@@ -28,8 +28,11 @@ Raptor HR is an enterprise HR management platform featuring:
 - **Employee management** - Records, departments, positions
 - **Time tracking** - Clock in/out, manual entries, approval workflows
 - **Leave management** - PTO, sick leave, holiday calendars
+- **Holiday calendar** - National holiday sync with Nager.Date API
 - **Timesheets** - Period-based summaries with approval workflows
 - **Contracts** - Employment agreement management
+- **Document management** - Attach documents to any entity
+- **Profile & settings** - User profile, timezone, company branding
 
 ## Technology Stack
 
@@ -51,6 +54,7 @@ Raptor HR is an enterprise HR management platform featuring:
 - Docker + Docker Compose
 - Nginx (reverse proxy)
 - GitHub Actions (CI/CD)
+- Codecov (test coverage tracking)
 
 ## Contributing
 

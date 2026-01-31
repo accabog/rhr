@@ -77,6 +77,8 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=false
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    volumes:
+      - media_data:/app/media
     depends_on:
       db:
         condition: service_healthy
@@ -117,6 +119,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  media_data:
 ```
 
 ## Nginx Configuration
@@ -179,13 +182,17 @@ http {
             proxy_pass http://backend;
         }
 
-        # Media files
+        # Media files (logos, avatars, documents)
         location /media/ {
-            proxy_pass http://backend;
+            alias /app/media/;
+            expires 30d;
+            add_header Cache-Control "public, immutable";
         }
     }
 }
 ```
+
+**Note:** For production, consider serving media files directly from Nginx (shown above) rather than proxying through Django for better performance. Mount the `media_data` volume to both backend and nginx containers.
 
 ## Database Backups
 
@@ -336,6 +343,36 @@ For high-traffic deployments, consider:
 - Read replicas for query distribution
 - Connection pooling with PgBouncer
 - Managed database services (AWS RDS, Cloud SQL)
+
+## Test Coverage
+
+The project uses [Codecov](https://codecov.io) for test coverage tracking.
+
+### Coverage Thresholds
+
+| Component | Minimum Coverage |
+|-----------|-----------------|
+| Backend | 80% |
+| Frontend | 70% |
+
+### CI Integration
+
+Coverage reports are automatically uploaded to Codecov on each PR. The CI pipeline will:
+- Run tests with coverage instrumentation
+- Upload coverage reports to Codecov
+- Comment on PRs with coverage delta
+- Block merges if coverage drops below thresholds
+
+### Local Coverage
+
+```bash
+# Backend
+cd backend && pytest --cov=apps --cov-report=html
+open htmlcov/index.html
+
+# Frontend
+cd frontend && npm run test:coverage
+```
 
 ## Security Checklist
 

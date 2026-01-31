@@ -39,22 +39,40 @@ frontend/src/
 │   ├── auth.ts             # Authentication endpoints
 │   ├── employees.ts        # Employee endpoints
 │   ├── timetracking.ts     # Time tracking endpoints
+│   ├── documents.ts        # Document management endpoints
 │   └── ...
+├── components/             # Shared UI components
+│   ├── DocumentList.tsx    # Document table with download/delete
+│   ├── DocumentSection.tsx # Combined upload + list section
+│   └── DocumentUpload.tsx  # Document upload modal
+├── data/                   # Static data files
+│   ├── countries.ts        # ISO country codes and names
+│   └── timezones.ts        # IANA timezone list with offsets
 ├── features/               # Feature-based modules
 │   ├── auth/               # Authentication
 │   │   ├── components/     # Login, Register forms
 │   │   ├── hooks/          # useAuth, useLogin
 │   │   └── pages/          # LoginPage, RegisterPage
+│   ├── calendar/           # Leave and holiday calendar
+│   │   └── CalendarPage.tsx
 │   ├── dashboard/          # Dashboard
 │   ├── employees/          # Employee management
+│   ├── profile/            # User profile management
+│   │   └── ProfilePage.tsx
+│   ├── settings/           # App and tenant settings
+│   │   └── SettingsPage.tsx
 │   ├── timetracking/       # Time tracking
 │   ├── timesheets/         # Timesheets
 │   ├── leave/              # Leave management
 │   └── contracts/          # Contracts
 ├── hooks/                  # Shared custom hooks
+│   ├── useTimezone.ts      # Timezone conversion utilities
+│   └── ...
 ├── layouts/                # Page layouts
 ├── stores/                 # Zustand state stores
 ├── types/                  # TypeScript type definitions
+├── utils/                  # Utility functions
+│   └── timezone.ts         # Timezone conversion logic
 ├── App.tsx                 # Root component with routing
 └── main.tsx                # Entry point
 ```
@@ -277,8 +295,12 @@ function App() {
             <Route path="/employees/:id" element={<EmployeeDetailPage />} />
             <Route path="/timetracking" element={<TimeTrackingPage />} />
             <Route path="/timesheets" element={<TimesheetsPage />} />
+            <Route path="/timesheets/:id" element={<TimesheetDetailPage />} />
             <Route path="/leave" element={<LeavePage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Routes>
@@ -383,6 +405,96 @@ function EmployeeForm({ onSubmit }: { onSubmit: (data: EmployeeFormData) => void
   );
 }
 ```
+
+## Document Components
+
+Reusable components for document management. Use these to add document functionality to any entity detail view.
+
+### DocumentSection
+
+Combined upload button and document list:
+
+```typescript
+import DocumentSection from '@/components/DocumentSection';
+
+// In an employee detail page
+function EmployeeDetail({ employee }) {
+  return (
+    <Card>
+      {/* Other employee info */}
+      <DocumentSection
+        contentType="employee"
+        objectId={employee.id}
+        title="Employee Documents"
+      />
+    </Card>
+  );
+}
+```
+
+### DocumentUpload
+
+Standalone upload component:
+
+```typescript
+import DocumentUpload from '@/components/DocumentUpload';
+
+<DocumentUpload
+  contentType="leaverequest"
+  objectId={leaveRequest.id}
+  buttonText="Attach Document"
+/>
+```
+
+### DocumentList
+
+Standalone document list:
+
+```typescript
+import DocumentList from '@/components/DocumentList';
+
+<DocumentList
+  contentType="contract"
+  objectId={contract.id}
+  showEmpty={false}  // Hide when no documents
+/>
+```
+
+## Timezone Utilities
+
+The `useTimezone` hook provides timezone-aware time conversion for the current employee.
+
+```typescript
+import { useTimezone } from '@/hooks/useTimezone';
+
+function TimeTrackingForm() {
+  const { timezone, toLocal, toUtc, formatTime, getCurrentTime } = useTimezone();
+
+  // Convert UTC time from API to local display
+  const displayTime = toLocal(entry.date, entry.start_time);
+
+  // Convert local input to UTC for storage
+  const handleSubmit = (values) => {
+    const utcTime = toUtc(values.date, values.start_time);
+    // Submit with UTC time
+  };
+
+  // Get current time in user's timezone
+  const now = getCurrentTime();
+
+  return (
+    <div>
+      <p>Your timezone: {timezone}</p>
+      {/* Form fields */}
+    </div>
+  );
+}
+```
+
+The hook:
+- Reads the employee's configured timezone from their profile
+- Falls back to browser timezone if not set
+- Provides conversion functions for UTC ↔ local time
 
 ## UI Components
 

@@ -60,10 +60,18 @@ rhr/
 ├── frontend/             # React + TypeScript
 │   └── src/
 │       ├── api/          # API client and hooks
+│       ├── components/   # Shared UI components (DocumentList, etc.)
+│       ├── data/         # Static data (countries, timezones)
 │       ├── features/     # Feature modules
+│       │   ├── calendar/ # Leave/holiday calendar
+│       │   ├── profile/  # User profile management
+│       │   ├── settings/ # App and tenant settings
+│       │   └── ...
+│       ├── hooks/        # Custom hooks (useTimezone, etc.)
 │       ├── layouts/      # App layouts
 │       ├── stores/       # Zustand state
-│       └── types/        # TypeScript types
+│       ├── types/        # TypeScript types
+│       └── utils/        # Utility functions
 └── nginx/                # Reverse proxy config
 ```
 

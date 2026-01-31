@@ -41,6 +41,11 @@ erDiagram
     Tenant ||--o{ Contract : manages
     Employee ||--o{ Contract : has
     Contract ||--o{ ContractDocument : contains
+
+    Tenant ||--o{ Document : stores
+    Employee ||--o{ Document : "attached to"
+    LeaveRequest ||--o{ Document : "attached to"
+    Contract ||--o{ Document : "attached to"
 ```
 
 ## Core Models
@@ -56,7 +61,8 @@ The root entity for multi-tenancy. All tenant-scoped data is isolated by tenant.
 | slug | String(100) | URL-safe identifier (unique) |
 | domain | String(255) | Custom domain (optional) |
 | is_active | Boolean | Tenant active status |
-| logo | Image | Organization logo |
+| logo | Image | Organization logo (full, for expanded sidebar) |
+| logo_icon | Image | Compact icon (for collapsed sidebar) |
 | plan | Enum | Subscription plan |
 | max_employees | Integer | Employee limit by plan |
 | created_at | DateTime | Record creation time |
@@ -105,6 +111,7 @@ Organizational units within a tenant.
 | description | Text | Description |
 | parent_id | FK(Department) | Parent department |
 | manager_id | FK(Employee) | Department manager |
+| country | String(2) | ISO 3166-1 alpha-2 country code |
 | is_active | Boolean | Active status |
 
 ### Position
@@ -147,6 +154,7 @@ Employee records within a tenant.
 | address | Text | Home address |
 | emergency_contact_name | String(255) | Emergency contact |
 | emergency_contact_phone | String(50) | Emergency phone |
+| timezone | String(50) | IANA timezone (e.g., America/New_York) |
 
 ## Time Tracking
 
@@ -261,17 +269,52 @@ Leave requests from employees.
 
 ### Holiday
 
-Company/public holidays.
+Company or public holidays. Can be manually created or synced from external APIs (Nager.Date).
 
 | Field | Type | Description |
 |-------|------|-------------|
 | id | Integer | Primary key |
 | tenant_id | FK(Tenant) | Tenant reference |
-| name | String(255) | Holiday name |
+| name | String(255) | Holiday name (English) |
+| local_name | String(255) | Holiday name in local language |
 | date | Date | Holiday date |
+| country | String(2) | ISO 3166-1 alpha-2 country code |
 | is_recurring | Boolean | Recurs annually |
 | applies_to_all | Boolean | All employees |
 | departments | M2M(Department) | Specific departments |
+| source | Enum | Origin: manual, nager_date |
+| external_id | String(100) | Identifier from external API |
+| holiday_types | JSON | Types (e.g., Public, Bank, National) |
+
+## Documents
+
+### Document
+
+Centralized document storage with polymorphic entity linking. Documents can be attached to any tenant-aware model (Employee, LeaveRequest, Contract, etc.) using Django's ContentType framework.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| tenant_id | FK(Tenant) | Tenant reference |
+| file | File | Uploaded file (stored in documents/%Y/%m/) |
+| original_filename | String(255) | Original file name |
+| file_size | Integer | File size in bytes |
+| mime_type | String(100) | MIME type (e.g., application/pdf) |
+| name | String(255) | Display name for the document |
+| description | Text | Optional description |
+| content_type_id | FK(ContentType) | Django content type reference |
+| object_id | Integer | ID of linked entity |
+| uploaded_by_id | FK(Employee) | Employee who uploaded |
+| created_at | DateTime | Upload timestamp |
+| updated_at | DateTime | Last update time |
+
+**Generic Relation Example:**
+```python
+# Documents can be attached to any model
+employee.documents.all()     # Get all documents for an employee
+leave_request.documents.all() # Get all documents for a leave request
+contract.documents.all()      # Get all documents for a contract
+```
 
 ## Contracts
 
@@ -334,6 +377,14 @@ CREATE INDEX idx_timeentry_tenant_date ON timetracking_timeentry(tenant_id, date
 CREATE INDEX idx_leaverequest_employee ON leave_leaverequest(employee_id);
 CREATE INDEX idx_leaverequest_status ON leave_leaverequest(status);
 CREATE INDEX idx_leaverequest_dates ON leave_leaverequest(start_date, end_date);
+
+-- Holidays (for country-based filtering and date lookups)
+CREATE INDEX idx_holiday_tenant_country ON leave_holiday(tenant_id, country);
+CREATE INDEX idx_holiday_date ON leave_holiday(date);
+
+-- Documents (for polymorphic entity lookups)
+CREATE INDEX idx_document_entity ON core_document(content_type_id, object_id);
+CREATE INDEX idx_document_tenant_type ON core_document(tenant_id, content_type_id);
 ```
 
 ## Migration Strategy

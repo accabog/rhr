@@ -65,6 +65,7 @@ graph TB
 |-----------|----------------|
 | **PostgreSQL** | Primary data storage |
 | **Redis** | Session cache, Celery message broker |
+| **File Storage** | Media files (logos, avatars, documents) |
 
 ## Request Flow
 
@@ -175,6 +176,37 @@ graph TB
     Celery --> Redis
 ```
 
+## External Integrations
+
+### Nager.Date API (National Holidays)
+
+The platform integrates with [Nager.Date](https://date.nager.at/) to sync national holidays.
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Backend
+    participant NagerAPI as Nager.Date API
+    participant Database
+
+    Admin->>Backend: POST /holidays/sync/ {country: "US"}
+    Backend->>NagerAPI: GET /api/v3/PublicHolidays/2025/US
+    NagerAPI-->>Backend: Holiday data (JSON)
+    Backend->>Database: Upsert holidays
+    Database-->>Backend: Created/Updated counts
+    Backend-->>Admin: {created: 12, updated: 0}
+```
+
+**Sync Methods:**
+- **API Endpoint**: `POST /api/v1/holidays/sync/` (admin-only)
+- **Management Command**: `python manage.py sync_holidays`
+
+**Data Stored:**
+- Holiday name (English and local)
+- Date and country code
+- Holiday types (Public, Bank, National, etc.)
+- Source tracking (`nager_date` vs `manual`)
+
 ## CI/CD Pipeline
 
 ```mermaid
@@ -187,6 +219,7 @@ graph LR
         Lint[Lint]
         TypeCheck[Type Check]
         Test[Tests]
+        Coverage[Codecov]
         Build[Docker Build]
     end
 
@@ -198,7 +231,8 @@ graph LR
     Push --> Lint
     Lint --> TypeCheck
     TypeCheck --> Test
-    Test --> Build
+    Test --> Coverage
+    Coverage --> Build
     Build --> Staging
     Staging -->|Manual Approval| Prod
 ```

@@ -325,6 +325,58 @@ npm update
 npm install package_name@latest
 ```
 
+## Management Commands
+
+### sync_holidays
+
+Sync national holidays from the Nager.Date API for all tenants or a specific tenant.
+
+```bash
+# Sync holidays for all tenants (current + next year)
+python manage.py sync_holidays
+
+# Sync for a specific tenant
+python manage.py sync_holidays --tenant=acme
+
+# Sync a specific country
+python manage.py sync_holidays --country=US
+
+# Sync specific years
+python manage.py sync_holidays --year=2025 --year=2026
+
+# Combine options
+python manage.py sync_holidays --tenant=acme --country=DE --year=2025
+```
+
+The command:
+- Reads country codes from department configurations
+- Fetches holidays from Nager.Date API
+- Creates or updates Holiday records with source tracking
+- Reports created/updated counts per country/year
+
+## Media Files
+
+### Upload Paths
+
+| Content Type | Upload Path | Description |
+|--------------|-------------|-------------|
+| Tenant Logos | `media/tenant_logos/` | Full organization logos |
+| Tenant Icons | `media/tenant_logos/icons/` | Compact sidebar icons |
+| User Avatars | `media/avatars/` | User profile pictures |
+| Employee Avatars | `media/employee_avatars/` | Employee profile pictures |
+| Documents | `media/documents/%Y/%m/` | Uploaded documents (organized by date) |
+
+### Local Development
+
+For local development, media files are served by Django's development server. Configure in `config/settings/local.py`:
+
+```python
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+```
+
+In production, media files should be served by Nginx or a CDN.
+
 ## Pre-commit Hooks
 
 Consider setting up pre-commit hooks for consistent code quality:

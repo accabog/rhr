@@ -73,7 +73,21 @@ docker-compose exec backend python manage.py shell
 ... )
 ```
 
-### 3. Access the Application
+### 3. Sync National Holidays (Optional)
+
+Import national holidays for your departments' countries:
+
+```bash
+# Via Django shell
+docker-compose exec backend python manage.py sync_holidays
+
+# Or for a specific country
+docker-compose exec backend python manage.py sync_holidays --country=US
+```
+
+This fetches public holidays from the Nager.Date API and stores them for leave calculations.
+
+### 4. Access the Application
 
 Open http://localhost:3000 and log in with your credentials.
 
