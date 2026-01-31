@@ -64,6 +64,7 @@ export interface Department {
   description: string;
   parent?: number;
   manager?: number;
+  country?: string;
   is_active: boolean;
   children_count: number;
   employees_count: number;
@@ -95,6 +96,7 @@ export interface Employee {
   avatar?: string;
   department?: number;
   department_name?: string;
+  department_country?: string;
   position?: number;
   position_title?: string;
   manager?: number;
@@ -106,11 +108,35 @@ export interface Employee {
   address?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  country?: string;
   timezone?: string;
   user?: number;
   created_at: string;
   updated_at: string;
+}
+
+// Document types
+export interface Document {
+  id: string;
+  name: string;
+  original_filename: string;
+  file_size: number;
+  mime_type: string;
+  description?: string;
+  content_type: number;
+  content_type_name: string;
+  object_id: number;
+  uploaded_by?: number;
+  uploaded_by_name?: string;
+  download_url: string;
+  created_at: string;
+}
+
+export interface DocumentUpload {
+  file: File;
+  name: string;
+  description?: string;
+  content_type_model: string;
+  object_id: number;
 }
 
 // API response types

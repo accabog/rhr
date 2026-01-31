@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/mocks/server';
 import { createWrapper } from '@/test/utils';
-import { createTimeEntry } from '@/test/mocks/data';
+import { createTimeEntry, createEmployee } from '@/test/mocks/data';
 import ClockWidget from '../ClockWidget';
 
 function renderClockWidget() {
@@ -24,7 +24,15 @@ describe('ClockWidget', () => {
   // Use real timers but mock Date for predictable elapsed time calculations
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    vi.setSystemTime(new Date('2024-01-15T14:30:00'));
+    // Set system time to 14:30 UTC
+    vi.setSystemTime(new Date('2024-01-15T14:30:00Z'));
+
+    // Mock employee API to return employee with UTC timezone for consistent time display
+    server.use(
+      http.get('/api/v1/employees/me/', () => {
+        return HttpResponse.json(createEmployee({ timezone: 'UTC' }));
+      })
+    );
   });
 
   afterEach(() => {
@@ -92,6 +100,7 @@ describe('ClockWidget', () => {
     beforeEach(() => {
       const activeEntry = createTimeEntry({
         end_time: null,
+        date: '2024-01-15',
         start_time: '09:00:00',
         entry_type_name: 'Regular',
       });

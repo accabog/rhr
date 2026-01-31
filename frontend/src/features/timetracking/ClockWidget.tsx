@@ -10,28 +10,16 @@ import {
   useClockIn,
   useClockOut,
 } from '@/hooks/useTimeTracking';
+import { useTimezone } from '@/hooks/useTimezone';
+import { dayjs } from '@/utils/timezone';
 
 const { Title, Text } = Typography;
-
-function formatDuration(startTime: string): string {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const start = new Date();
-  start.setHours(hours ?? 0, minutes, 0, 0);
-
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-
-  const h = Math.floor(diffMins / 60);
-  const m = diffMins % 60;
-
-  return `${h}h ${m}m`;
-}
 
 export default function ClockWidget() {
   const { data: currentEntry, isLoading } = useCurrentTimeEntry();
   const clockInMutation = useClockIn();
   const clockOutMutation = useClockOut();
+  const { formatTime, timezone } = useTimezone();
 
   const [elapsedTime, setElapsedTime] = useState('0h 0m');
   const [clockOutModalOpen, setClockOutModalOpen] = useState(false);
@@ -41,15 +29,23 @@ export default function ClockWidget() {
 
   // Update elapsed time every minute
   useEffect(() => {
-    if (currentEntry?.start_time) {
+    if (currentEntry?.start_time && currentEntry?.date) {
       const updateElapsed = () => {
-        setElapsedTime(formatDuration(currentEntry.start_time));
+        // Create UTC datetime from the stored date and time
+        const utcStart = dayjs.utc(`${currentEntry.date}T${currentEntry.start_time}`);
+        // Get current time in user's timezone, then convert to UTC for comparison
+        const now = dayjs().utc();
+        const diffMins = now.diff(utcStart, 'minute');
+
+        const h = Math.floor(diffMins / 60);
+        const m = diffMins % 60;
+        setElapsedTime(`${h}h ${m}m`);
       };
       updateElapsed();
       const interval = setInterval(updateElapsed, 60000);
       return () => clearInterval(interval);
     }
-  }, [currentEntry?.start_time]);
+  }, [currentEntry?.start_time, currentEntry?.date, timezone]);
 
   const handleClockIn = () => {
     clockInMutation.mutate({});
@@ -100,7 +96,7 @@ export default function ClockWidget() {
                 {elapsedTime}
               </Title>
               <Text style={{ color: 'rgba(255,255,255,0.85)' }}>
-                Started at {currentEntry?.start_time?.slice(0, 5)}
+                Started at {formatTime(currentEntry?.date || '', currentEntry?.start_time || null)}
               </Text>
               {currentEntry?.entry_type_name && (
                 <div style={{ marginTop: 8 }}>

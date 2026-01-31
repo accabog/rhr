@@ -25,6 +25,7 @@ import {
   useWeeklySummary,
   useDeleteTimeEntry,
 } from '@/hooks/useTimeTracking';
+import { useTimezone } from '@/hooks/useTimezone';
 import type { TimeEntry } from '@/api/timetracking';
 import ClockWidget from './ClockWidget';
 import TimeEntryFormModal from './TimeEntryFormModal';
@@ -32,11 +33,6 @@ import WeeklySummaryCard from './WeeklySummaryCard';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
-
-function formatTime(time: string | null): string {
-  if (!time) return '-';
-  return time.slice(0, 5); // HH:mm
-}
 
 function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -65,6 +61,7 @@ export default function TimeTrackingPage() {
 
   const { data: summary } = useWeeklySummary(startDate, endDate);
   const deleteMutation = useDeleteTimeEntry();
+  const { formatTime } = useTimezone();
 
   const handleAddEntry = () => {
     setEditingEntry(null);
@@ -102,7 +99,7 @@ export default function TimeTrackingPage() {
       width: 140,
       render: (_, record) => (
         <span>
-          {formatTime(record.start_time)} - {formatTime(record.end_time)}
+          {formatTime(record.date, record.start_time)} - {formatTime(record.date, record.end_time)}
         </span>
       ),
     },

@@ -21,6 +21,7 @@ import {
   useEmployees,
 } from '@/hooks/useEmployees';
 import type { Department } from '@/types';
+import { COUNTRIES } from '@/data/countries';
 
 export default function DepartmentsTab() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -98,6 +99,15 @@ export default function DepartmentsTab() {
       render: (_, record) => {
         const manager = employees.find((e) => e.id === record.manager);
         return manager?.full_name || '-';
+      },
+    },
+    {
+      title: 'Country',
+      key: 'country',
+      width: 140,
+      render: (_, record) => {
+        const country = COUNTRIES.find((c) => c.code === record.country);
+        return country?.name || '-';
       },
     },
     {
@@ -210,6 +220,19 @@ export default function DepartmentsTab() {
               options={employees.map((e) => ({
                 value: e.id,
                 label: e.full_name,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item name="country" label="Country">
+            <Select
+              placeholder="Select country"
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              options={COUNTRIES.map((c) => ({
+                value: c.code,
+                label: c.name,
               }))}
             />
           </Form.Item>

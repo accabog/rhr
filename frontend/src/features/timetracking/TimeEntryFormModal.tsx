@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { Modal, Form, Input, Select, DatePicker, TimePicker, InputNumber, Row, Col } from 'antd';
-import dayjs from 'dayjs';
 import {
   useTimeEntryTypes,
   useCreateTimeEntry,
   useUpdateTimeEntry,
 } from '@/hooks/useTimeTracking';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useTimezone } from '@/hooks/useTimezone';
+import { dayjs } from '@/utils/timezone';
 import type { TimeEntry } from '@/api/timetracking';
 
 interface TimeEntryFormModalProps {
@@ -41,18 +42,23 @@ export default function TimeEntryFormModal({
   const { data: employeesData } = useEmployees({ status: 'active' });
   const createMutation = useCreateTimeEntry();
   const updateMutation = useUpdateTimeEntry();
+  const { toLocal, toUtc, timezone } = useTimezone();
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (open) {
       if (entry) {
+        // Convert UTC times to local timezone for display
+        const localStartTime = toLocal(entry.date, entry.start_time);
+        const localEndTime = entry.end_time ? toLocal(entry.date, entry.end_time) : null;
+
         form.setFieldsValue({
           employee: entry.employee,
           entry_type: entry.entry_type,
           date: dayjs(entry.date),
-          start_time: dayjs(entry.start_time, 'HH:mm:ss'),
-          end_time: entry.end_time ? dayjs(entry.end_time, 'HH:mm:ss') : undefined,
+          start_time: localStartTime ? dayjs(localStartTime, 'HH:mm') : undefined,
+          end_time: localEndTime ? dayjs(localEndTime, 'HH:mm') : undefined,
           break_minutes: entry.break_minutes,
           notes: entry.notes,
           project: entry.project,
@@ -60,24 +66,28 @@ export default function TimeEntryFormModal({
         });
       } else {
         form.resetFields();
+        // Default to current time in user's timezone
         form.setFieldsValue({
           employee: defaultEmployeeId,
-          date: dayjs(),
+          date: dayjs().tz(timezone),
           break_minutes: 0,
         });
       }
     }
-  }, [open, entry, form, defaultEmployeeId]);
+  }, [open, entry, form, defaultEmployeeId, toLocal, timezone]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const dateStr = values.date.format('YYYY-MM-DD');
+
+      // Convert local times to UTC for storage
       const data = {
         employee: values.employee,
         entry_type: values.entry_type,
-        date: values.date.format('YYYY-MM-DD'),
-        start_time: values.start_time.format('HH:mm:ss'),
-        end_time: values.end_time?.format('HH:mm:ss'),
+        date: dateStr,
+        start_time: toUtc(dateStr, values.start_time.format('HH:mm:ss')),
+        end_time: values.end_time ? toUtc(dateStr, values.end_time.format('HH:mm:ss')) : undefined,
         break_minutes: values.break_minutes || 0,
         notes: values.notes || '',
         project: values.project || '',

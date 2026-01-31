@@ -5,6 +5,7 @@ Employee models for HR management.
 from __future__ import annotations
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from apps.core.models import TenantAwareManager, TenantAwareModel
@@ -29,6 +30,11 @@ class Department(TenantAwareModel):
         null=True,
         blank=True,
         related_name="managed_departments",
+    )
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)",
     )
     is_active = models.BooleanField(default=True)
 
@@ -137,16 +143,14 @@ class Employee(TenantAwareModel):
     emergency_contact_phone = models.CharField(max_length=50, blank=True)
 
     # Location info
-    country = models.CharField(
-        max_length=2,
-        blank=True,
-        help_text="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)",
-    )
     timezone = models.CharField(
         max_length=50,
         blank=True,
         help_text="IANA timezone (e.g., America/New_York, Europe/London)",
     )
+
+    # Documents
+    documents = GenericRelation("core.Document")
 
     objects = TenantAwareManager()
 

@@ -22,6 +22,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "description",
             "parent",
             "manager",
+            "country",
             "is_active",
             "children_count",
             "employees_count",
@@ -63,6 +64,7 @@ class EmployeeListSerializer(serializers.ModelSerializer):
     """Serializer for Employee list view (minimal fields)."""
 
     department_name = serializers.CharField(source="department.name", read_only=True)
+    department_country = serializers.CharField(source="department.country", read_only=True)
     position_title = serializers.CharField(source="position.title", read_only=True)
     manager_name = serializers.CharField(source="manager.full_name", read_only=True, default=None)
     full_name = serializers.ReadOnlyField()
@@ -79,6 +81,7 @@ class EmployeeListSerializer(serializers.ModelSerializer):
             "email",
             "department",
             "department_name",
+            "department_country",
             "position",
             "position_title",
             "manager",
@@ -86,7 +89,6 @@ class EmployeeListSerializer(serializers.ModelSerializer):
             "status",
             "hire_date",
             "avatar",
-            "country",
             "timezone",
         ]
 
@@ -104,6 +106,7 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
     """Serializer for Employee detail view (all fields)."""
 
     department_name = serializers.CharField(source="department.name", read_only=True)
+    department_country = serializers.CharField(source="department.country", read_only=True)
     position_title = serializers.CharField(source="position.title", read_only=True)
     manager_name = serializers.CharField(source="manager.full_name", read_only=True)
     full_name = serializers.ReadOnlyField()
@@ -122,6 +125,7 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
             "avatar",
             "department",
             "department_name",
+            "department_country",
             "position",
             "position_title",
             "manager",
@@ -133,7 +137,6 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
             "address",
             "emergency_contact_name",
             "emergency_contact_phone",
-            "country",
             "timezone",
             "user",
             "created_at",

@@ -24,7 +24,6 @@ interface ProfileFormValues {
 }
 
 interface LocationFormValues {
-  country: string;
   timezone: string;
 }
 
@@ -53,7 +52,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (employee) {
       locationForm.setFieldsValue({
-        country: employee.country || '',
         timezone: employee.timezone || '',
       });
     }
@@ -241,17 +239,19 @@ export default function ProfilePage() {
               onFinish={handleLocationSubmit}
               requiredMark={false}
             >
-              <Form.Item name="country" label="Country">
-                <Select
-                  showSearch
-                  placeholder="Select your country"
-                  optionFilterProp="label"
-                  allowClear
-                  options={COUNTRIES.map((c) => ({
-                    value: c.code,
-                    label: c.name,
-                  }))}
+              <Form.Item label="Country">
+                <Input
+                  value={
+                    employee.department_country
+                      ? COUNTRIES.find((c) => c.code === employee.department_country)?.name || employee.department_country
+                      : 'Not set (assign via department)'
+                  }
+                  disabled
+                  style={{ backgroundColor: '#f5f5f5' }}
                 />
+                <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: 'block' }}>
+                  Country is set at the department level
+                </Text>
               </Form.Item>
 
               <Form.Item name="timezone" label="Timezone">
