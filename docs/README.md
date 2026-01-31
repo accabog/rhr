@@ -57,7 +57,6 @@ Raptor HR is an enterprise HR management platform featuring:
   - Playwright browser caching for faster E2E runs
   - Parallel test execution (4 workers)
   - SBOM generation for container images
-  - Email notifications on deployment
   - Migration dry-run validation for production
 - Codecov (test coverage tracking)
 

@@ -143,15 +143,6 @@ Go to Settings → Secrets and variables → Actions → Secrets:
 | `SECRET_KEY` | Same as in your .env |
 | `POSTGRES_PASSWORD` | Same as in your .env |
 
-**Email Notification Secrets (Optional):**
-
-| Secret | Value |
-|--------|-------|
-| `SMTP_SERVER` | SMTP server address (e.g., `smtp.sendgrid.net`) |
-| `SMTP_USERNAME` | SMTP username (e.g., `apikey` for SendGrid) |
-| `SMTP_PASSWORD` | SMTP password or API key |
-| `DEPLOY_NOTIFY_EMAIL` | Email to receive deployment notifications |
-
 #### Enable Staging Deployments
 
 Go to Settings → Secrets and variables → Actions → Variables:
@@ -178,7 +169,6 @@ Pushes to `main` trigger this workflow:
    - Runs migrations
    - Restarts services
    - Runs health checks
-   - Sends email notification (if SMTP secrets configured)
 
 ### Production Deployments
 
@@ -377,9 +367,9 @@ The CI/CD pipeline is implemented via GitHub Actions:
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │              Staging Deploy (deploy-staging.yml)                 │
-│  ┌────────┐   ┌────────────┐   ┌──────────────┐                 │
-│  │ Deploy │ → │ Smoke Test │ → │ Email Notify │                 │
-│  └────────┘   └────────────┘   └──────────────┘                 │
+│  ┌────────┐   ┌────────────┐                                    │
+│  │ Deploy │ → │ Smoke Test │                                    │
+│  └────────┘   └────────────┘                                    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -432,5 +422,5 @@ Backend threshold is 70% (configured in CI workflow).
 | `scripts/deploy.sh` | Deployment helper script |
 | `scripts/setup-server.sh` | Server setup script |
 | `.github/workflows/ci.yml` | CI pipeline (tests, builds, SBOM) |
-| `.github/workflows/deploy-staging.yml` | Staging deployment + notifications |
+| `.github/workflows/deploy-staging.yml` | Staging deployment |
 | `.github/workflows/deploy-production.yml` | Production deployment with safeguards |
