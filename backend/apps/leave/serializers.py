@@ -105,15 +105,6 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         """Return list of holidays excluded from this leave request."""
         holidays = obj.get_applicable_holidays()
         return ExcludedHolidaySerializer(holidays, many=True).data
-        read_only_fields = [
-            "id",
-            "status",
-            "reviewed_by",
-            "reviewed_at",
-            "review_notes",
-            "created_at",
-            "updated_at",
-        ]
 
     def validate(self, attrs):
         # Validate end_date is after start_date
