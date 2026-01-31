@@ -307,18 +307,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Get short SHA for SBOM
+        if: github.event_name != 'pull_request'
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
       - name: Generate backend SBOM
         if: github.event_name != 'pull_request'
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:sha-${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:sha-${{ steps.sha.outputs.short }}
           artifact-name: sbom-backend.spdx.json
 
       - name: Generate frontend SBOM
         if: github.event_name != 'pull_request'
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:sha-${{ github.sha }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:sha-${{ steps.sha.outputs.short }}
           artifact-name: sbom-frontend.spdx.json
 
   # Summary job that all other jobs depend on
