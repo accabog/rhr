@@ -88,8 +88,9 @@ cd /opt/rhr
 nano .env
 
 # Update these values:
-# - ALLOWED_HOSTS=staging.yourdomain.com
+# - ALLOWED_HOSTS=staging.yourdomain.com,localhost  (localhost required for health checks)
 # - CSRF_TRUSTED_ORIGINS=https://staging.yourdomain.com
+# - CORS_ALLOWED_ORIGINS=https://staging.yourdomain.com
 ```
 
 ### 5. Set Up SSL Certificate
@@ -112,6 +113,9 @@ cd /opt/rhr
 # Pull and start services
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
+
+# Alternative: Build locally if GHCR images are outdated
+# docker compose -f docker-compose.prod.yml up -d --build
 
 # Run migrations
 docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
@@ -241,6 +245,31 @@ docker compose -f docker-compose.prod.yml logs --tail=0
 ---
 
 ## Troubleshooting
+
+### Common Issues
+
+#### CORS Error (corsheaders.E013)
+If you see `corsheaders.E013: Origin '' in CORS_ALLOWED_ORIGINS is missing scheme`:
+```bash
+# Add CORS_ALLOWED_ORIGINS to your .env
+echo "CORS_ALLOWED_ORIGINS=https://staging.yourdomain.com" >> .env
+docker compose -f docker-compose.prod.yml restart backend
+```
+
+#### HTTP 400 Bad Request
+If health checks return 400, `localhost` is likely missing from ALLOWED_HOSTS:
+```bash
+# Ensure ALLOWED_HOSTS includes localhost for internal health checks
+# ALLOWED_HOSTS=staging.yourdomain.com,localhost
+```
+
+#### Backend Health Check Stuck
+If the backend container stays "starting" or health checks hang:
+```bash
+# Test health endpoint directly inside container
+docker compose -f docker-compose.prod.yml exec backend python -c \
+  "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/api/v1/health/').read())"
+```
 
 ### Container Won't Start
 
