@@ -91,3 +91,4 @@ celerybeat.pid
 .temp/
 tmp/
 .playwright-mcp/
+.mcp.json
