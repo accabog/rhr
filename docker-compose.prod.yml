@@ -42,6 +42,7 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost}
       - DEBUG=false
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-https://localhost}
+      - SECURE_SSL_REDIRECT=false
     depends_on:
       db:
         condition: service_healthy
