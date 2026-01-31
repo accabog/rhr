@@ -18,7 +18,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report security issues by emailing:
 
-**security@your-org.com**
+**security@raptorhr.com**
 
 Include the following in your report:
 - Description of the vulnerability
