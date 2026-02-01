@@ -1,0 +1,112 @@
+{
+  "name": "RHR Development",
+
+  // Build dev container directly from Dockerfile
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  // Configure tool-specific settings
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Claude AI assistant
+        "anthropic.claude-code",
+
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker",
+        "rangav.vscode-thunder-client",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "christian-kohler.path-intellisense",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "editor.rulers": [88, 120],
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "sqltools.connections": [
+          {
+            "name": "RHR Dev Database",
+            "driver": "PostgreSQL",
+            "server": "localhost",
+            "port": 5432,
+            "database": "rhr",
+            "username": "rhr",
+            "password": "rhr_dev_password"
+          }
+        ]
+      }
+    }
+  },
+
+  // Forward ports for development
+  "forwardPorts": [3000, 8000, 5432, 6379],
+  "portsAttributes": {
+    "3000": { "label": "Frontend (Vite)", "onAutoForward": "notify" },
+    "8000": { "label": "Backend (Django)", "onAutoForward": "notify" },
+    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
+    "6379": { "label": "Redis", "onAutoForward": "silent" }
+  },
+
+  // Start services and install dependencies
+  "initializeCommand": "docker compose up -d db redis",
+  "postCreateCommand": "cd /workspace/backend && pip install -e '.[dev]' && cd /workspace/frontend && npm ci",
+  "postStartCommand": "echo '🚀 Dev container ready! Services running on host.'",
+
+  // Environment variables
+  "containerEnv": {
+    "DJANGO_SETTINGS_MODULE": "config.settings.local",
+    "DATABASE_URL": "postgres://rhr:rhr_dev_password@host.docker.internal:5432/rhr",
+    "REDIS_URL": "redis://host.docker.internal:6379/0",
+    "DEBUG": "true",
+    "PYTHONPATH": "/workspace/backend"
+  },
+
+  // Mount Docker socket for docker commands inside container
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  "remoteUser": "vscode",
+
+  // Make host.docker.internal resolve to the host gateway
+  "runArgs": ["--add-host=host.docker.internal:host-gateway"]
+}
