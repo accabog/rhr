@@ -74,9 +74,10 @@ up:
 
 dev: dev-services
 	@echo ""
-	@echo "Starting backend and frontend (Ctrl+C to stop all)..."
+	@echo "Starting backend and frontend..."
+	@echo "Press Ctrl+C to stop all services"
 	@echo ""
-	@trap 'kill 0' EXIT; \
+	@trap 'pkill -f "python manage.py runserver" 2>/dev/null; pkill -f "vite" 2>/dev/null; exit 0' INT TERM; \
 		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
 		(cd frontend && npm run dev -- --host 0.0.0.0) & \
 		wait
