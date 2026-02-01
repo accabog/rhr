@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "make lint-be 2>/dev/null || ruff check backend/"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write(**/apps/**/models.py)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Reminder: Run make migrations if you changed models'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(**/apps/**/serializers.py)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Consider: Do you need both List and Detail serializers?'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(**/apps/**/views.py)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Reminder: Ensure ViewSet inherits from TenantAwareViewSet'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(**/src/api/*.ts)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Reminder: Create corresponding React Query hooks in src/hooks/'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write(**/test_*.py)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 Running quick test validation...' && cd backend && python -m py_compile $(git diff --name-only | grep test_ | head -1) 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
