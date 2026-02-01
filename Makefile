@@ -5,7 +5,7 @@
 DOCKER_COMPOSE := docker compose
 
 .PHONY: help up down restart logs status \
-        dev dev-services run-be run-fe stop \
+        dev dev-services run-be run-fe \
         migrate migrations shell seed seed-e2e \
         test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
@@ -23,8 +23,7 @@ help:
 	@echo "  make status      Show service status"
 	@echo ""
 	@echo "Dev Container (recommended for VS Code Dev Container):"
-	@echo "  make dev         Start db/redis + backend/frontend natively"
-	@echo "  make stop        Stop all services (native + Docker)"
+	@echo "  make dev         Start db/redis + backend/frontend natively (Ctrl+C stops all)"
 	@echo "  make dev-services  Start only db and redis"
 	@echo "  make run-be      Run backend natively (separate terminal)"
 	@echo "  make run-fe      Run frontend natively (separate terminal)"
@@ -75,19 +74,12 @@ up:
 dev: dev-services
 	@echo ""
 	@echo "Starting backend and frontend..."
-	@echo "Press Ctrl+C to stop"
+	@echo "Press Ctrl+C to stop all services"
 	@echo ""
-	@(trap 'kill %1 %2 2>/dev/null; exit 0' INT TERM; \
-		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
-		(cd frontend && npm run dev -- --host 0.0.0.0) & \
-		wait)
-
-stop:
-	@echo "Stopping all services..."
-	@-pkill -f 'manage\.py runserver' 2>/dev/null || true
-	@-pkill -f 'node.*vite' 2>/dev/null || true
-	@$(DOCKER_COMPOSE) down 2>/dev/null || true
-	@echo "All services stopped."
+	@(cd backend && exec python manage.py runserver 0.0.0.0:8000) & BE_PID=$$!; \
+	(cd frontend && exec npm run dev -- --host 0.0.0.0) & FE_PID=$$!; \
+	trap "kill $$BE_PID $$FE_PID 2>/dev/null; $(DOCKER_COMPOSE) down; exit 0" INT TERM; \
+	wait
 
 dev-services:
 	@echo "Starting database services..."

@@ -198,8 +198,7 @@ All commands are run from the project root.
 
 | Command | Description |
 |---------|-------------|
-| `make dev` | Start db/redis + run backend/frontend natively |
-| `make stop` | Stop all services (native processes + Docker) |
+| `make dev` | Start db/redis + run backend/frontend natively (Ctrl+C stops all) |
 | `make dev-services` | Start only PostgreSQL and Redis |
 | `make run-be` | Run backend natively (for separate terminal) |
 | `make run-fe` | Run frontend natively (for separate terminal) |
@@ -310,9 +309,6 @@ When running inside the Dev Container, `make up` may fail with volume mount erro
 ```bash
 # Start everything in one command (Ctrl+C to stop all)
 make dev
-
-# Or stop from another terminal
-make stop
 ```
 
 This starts:
