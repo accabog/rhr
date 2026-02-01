@@ -266,6 +266,15 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
         run: python manage.py migrate
 
+      - name: Seed E2E test data
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgres://rhr:rhr_test_password@localhost:5432/rhr
+          REDIS_URL: redis://localhost:6379/0
+          DJANGO_SETTINGS_MODULE: config.settings.local
+          SECRET_KEY: test-secret-key-for-ci
+        run: python manage.py seed_e2e_data
+
       - name: Start backend server
         working-directory: ./backend
         env:
