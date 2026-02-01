@@ -7,6 +7,15 @@
     "context": ".."
   },
 
+  // Dev Container features
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
@@ -88,7 +97,7 @@
 
   // Start services and install dependencies
   "initializeCommand": "docker compose up -d db redis",
-  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci",
+  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci && npm install -g typescript prettier npm-check-updates @anthropic-ai/claude-code",
   "postStartCommand": "echo '🚀 Dev container ready! Services running on host.'",
 
   // Environment variables

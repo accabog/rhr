@@ -1,179 +1,50 @@
 # Development tooling container for VS Code Dev Containers
-# This container provides IDE support, linting, and testing tools
-# The actual backend/frontend services run in separate containers
+# Uses Microsoft's pre-built base image for faster builds
+# Base image includes: Git, curl, vim, make, jq, sudo, and more
+# Features add: Node.js, GitHub CLI, Docker CLI (see devcontainer.json)
 
-FROM python:3.12-slim
+FROM mcr.microsoft.com/devcontainers/python:3.12
 
-# Avoid prompts from apt
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies
+# Install additional system packages not in base image (single layer)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Build essentials for Python packages
-    build-essential \
-    libpq-dev \
-    # Node.js prerequisites
-    curl \
-    ca-certificates \
-    gnupg \
-    # Git and version control
-    git \
-    openssh-client \
-    # Editors and pagers
-    vim \
-    less \
-    # Database clients
     postgresql-client \
     redis-tools \
-    # Essential CLI tools
-    make \
-    jq \
-    tree \
-    wget \
-    unzip \
-    # Process utilities
-    procps \
+    ripgrep \
+    fd-find \
     htop \
-    # Network utilities
-    dnsutils \
-    iputils-ping \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install ripgrep (faster grep)
-RUN curl -LO https://github.com/BurntSushi/ripgrep/releases/download/14.1.0/ripgrep_14.1.0-1_amd64.deb \
-    && dpkg -i ripgrep_14.1.0-1_amd64.deb \
-    && rm ripgrep_14.1.0-1_amd64.deb
-
-# Install fd (faster find)
-RUN curl -LO https://github.com/sharkdp/fd/releases/download/v10.1.0/fd_10.1.0_amd64.deb \
-    && dpkg -i fd_10.1.0_amd64.deb \
-    && rm fd_10.1.0_amd64.deb
-
-# Install GitHub CLI
-RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y gh \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Docker CLI (to interact with host Docker)
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli docker-compose-plugin \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js 20.x
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s $(which fdfind) /usr/local/bin/fd
 
 # Install Playwright system dependencies for E2E testing
 # These are required for running headless Chromium
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Core libraries for Chromium
-    libglib2.0-0 \
-    libnss3 \
-    libnspr4 \
-    libdbus-1-3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
-    libatspi2.0-0 \
-    # X11 libraries for screenshots
-    libx11-6 \
-    libx11-xcb1 \
-    libxcb1 \
-    libxext6 \
-    # Fonts for proper rendering
-    fonts-liberation \
-    fonts-noto-color-emoji \
+    libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 \
+    libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 \
+    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
+    libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 \
+    libx11-6 libx11-xcb1 libxcb1 libxext6 \
+    fonts-liberation fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python development tools globally
+# Note: pytest, factory-boy, django-stubs etc. are in project requirements
 RUN pip install --no-cache-dir \
-    # Linting and formatting
     ruff \
     mypy \
     pre-commit \
-    # Testing
-    pytest \
-    pytest-cov \
-    pytest-django \
-    pytest-asyncio \
-    factory-boy \
-    faker \
-    # Django tools
-    django-stubs \
-    djangorestframework-stubs \
-    django-extensions \
-    # Interactive shell
     ipython \
     rich \
-    # HTTP clients
-    httpx \
-    httpie \
-    # Environment
-    python-dotenv \
-    # Type stubs
-    types-requests \
-    types-redis
+    httpie
 
-# Install Node.js development tools globally
-RUN npm install -g \
-    typescript \
-    ts-node \
-    eslint \
-    prettier \
-    npm-check-updates \
-    @types/node \
-    @anthropic-ai/claude-code
+# Shell aliases for better developer experience
+RUN echo 'alias ll="ls -la"' >> /home/vscode/.bashrc \
+    && echo 'alias rg="rg --smart-case"' >> /home/vscode/.bashrc \
+    && echo 'alias gs="git status"' >> /home/vscode/.bashrc \
+    && echo 'alias gd="git diff"' >> /home/vscode/.bashrc \
+    && echo 'export PYTHONDONTWRITEBYTECODE=1' >> /home/vscode/.bashrc \
+    && echo 'export PYTHONUNBUFFERED=1' >> /home/vscode/.bashrc
 
-# Create non-root user for development
-ARG USERNAME=vscode
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && apt-get update \
-    && apt-get install -y sudo \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && rm -rf /var/lib/apt/lists/*
-
-# Add user to docker group (for docker socket access)
-RUN groupadd -f docker && usermod -aG docker $USERNAME
-
-# Set up shell configuration for better experience
-RUN echo 'alias ll="ls -la"' >> /home/$USERNAME/.bashrc \
-    && echo 'alias rg="rg --smart-case"' >> /home/$USERNAME/.bashrc \
-    && echo 'alias gs="git status"' >> /home/$USERNAME/.bashrc \
-    && echo 'alias gd="git diff"' >> /home/$USERNAME/.bashrc \
-    && echo 'export PYTHONDONTWRITEBYTECODE=1' >> /home/$USERNAME/.bashrc \
-    && echo 'export PYTHONUNBUFFERED=1' >> /home/$USERNAME/.bashrc \
-    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/$USERNAME/.bashrc
-
-# Set working directory
 WORKDIR /workspace
-
-# Switch to non-root user
-USER $USERNAME
-
-# Set bash as default shell
-ENV SHELL=/bin/bash
-SHELL ["/bin/bash", "-c"]
 
 # Keep container running
 CMD ["sleep", "infinity"]
