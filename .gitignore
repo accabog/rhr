@@ -97,3 +97,7 @@ tmp/
 .playwright-mcp/
 .mcp.json
 .claude/settings.local.json
+
+# Playwright test artifacts
+playwright-report/
+test-results/
