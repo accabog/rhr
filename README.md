@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/accabog/rhr/actions/workflows/ci.yml/badge.svg)](https://github.com/accabog/rhr/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/accabog/rhr/branch/main/graph/badge.svg)](https://codecov.io/gh/accabog/rhr)
+[![CodeQL](https://github.com/accabog/rhr/actions/workflows/codeql.yml/badge.svg)](https://github.com/accabog/rhr/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Enterprise HR management platform with multi-tenant support, time tracking, leave management, and more.
