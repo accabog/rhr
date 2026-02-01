@@ -5,6 +5,7 @@
 DOCKER_COMPOSE := docker compose
 
 .PHONY: help up down restart logs status \
+        dev dev-services run-be run-fe \
         migrate migrations shell seed seed-e2e \
         test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
@@ -15,11 +16,17 @@ help:
 	@echo "RHR Development Commands"
 	@echo ""
 	@echo "Services:"
-	@echo "  make up          Start all services"
+	@echo "  make up          Start all services (Docker)"
 	@echo "  make down        Stop all services"
 	@echo "  make restart     Restart all services"
 	@echo "  make logs        Follow service logs"
 	@echo "  make status      Show service status"
+	@echo ""
+	@echo "Dev Container (recommended for VS Code Dev Container):"
+	@echo "  make dev         Start db/redis + backend/frontend natively"
+	@echo "  make dev-services  Start only db and redis"
+	@echo "  make run-be      Run backend natively (separate terminal)"
+	@echo "  make run-fe      Run frontend natively (separate terminal)"
 	@echo ""
 	@echo "Backend:"
 	@echo "  make migrate     Run Django migrations"
@@ -57,6 +64,38 @@ help:
 up:
 	$(DOCKER_COMPOSE) up -d
 	@echo "Services started. Frontend: http://localhost:3000, Backend: http://localhost:8000"
+
+# ============================================================
+# Dev Container Development (native backend/frontend)
+# ============================================================
+# Use these commands when running inside a Dev Container where
+# Docker-in-Docker volume mounts don't work for app services.
+
+dev: dev-services
+	@echo ""
+	@echo "Starting backend and frontend (Ctrl+C to stop all)..."
+	@echo ""
+	@trap 'kill 0' EXIT; \
+		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
+		(cd frontend && npm run dev -- --host 0.0.0.0) & \
+		wait
+
+dev-services:
+	@echo "Starting database services..."
+	@$(DOCKER_COMPOSE) up -d db redis
+	@echo "Waiting for services to be healthy..."
+	@sleep 5
+	@$(DOCKER_COMPOSE) ps
+	@echo ""
+	@echo "Database services ready:"
+	@echo "  PostgreSQL: localhost:5432"
+	@echo "  Redis:      localhost:6379"
+
+run-be:
+	cd backend && python manage.py runserver 0.0.0.0:8000
+
+run-fe:
+	cd frontend && npm run dev -- --host 0.0.0.0
 
 down:
 	$(DOCKER_COMPOSE) down

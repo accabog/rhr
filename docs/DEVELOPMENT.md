@@ -4,8 +4,15 @@ This document explains how to set up your development environment for Raptor HR.
 
 ## Quick Start
 
+**VS Code Dev Container (recommended):**
 ```bash
-# Start all services
+# Start db/redis in Docker, backend/frontend natively
+make dev
+```
+
+**Native Docker (outside Dev Container):**
+```bash
+# Start all services in Docker
 make up
 
 # Check status
@@ -66,7 +73,7 @@ The Dev Container provides a fully configured development environment with all t
 
 3. **Start Services**
    ```bash
-   make up
+   make dev
    ```
 
 4. **Verify Setup**
@@ -160,6 +167,15 @@ All commands are run from the project root.
 | `make restart` | Restart all services |
 | `make logs` | Follow service logs |
 | `make status` | Show service status |
+
+### Dev Container (Recommended for VS Code Dev Container)
+
+| Command | Description |
+|---------|-------------|
+| `make dev` | Start db/redis + run backend/frontend natively |
+| `make dev-services` | Start only PostgreSQL and Redis |
+| `make run-be` | Run backend natively (for separate terminal) |
+| `make run-fe` | Run frontend natively (for separate terminal) |
 
 ### Backend Development
 
@@ -262,17 +278,29 @@ make logs
 
 When running inside the Dev Container, `make up` may fail with volume mount errors. This is a known Docker-in-Docker limitation where container paths don't resolve correctly for volume mounts.
 
-**Workaround:** Run database services via Docker, but run application services natively:
+**Solution:** Use `make dev` which starts database services via Docker and runs application services natively:
 
 ```bash
-# Start only database services
-docker compose up -d db redis
+# Start everything in one command (Ctrl+C to stop all)
+make dev
+```
 
-# Run backend natively (in one terminal)
-cd backend && python manage.py runserver
+This starts:
+- PostgreSQL and Redis in Docker containers
+- Django backend natively (http://localhost:8000)
+- Vite frontend natively (http://localhost:3000)
 
-# Run frontend natively (in another terminal)
-cd frontend && npm run dev
+**Alternative:** Run services in separate terminals for independent log viewing:
+
+```bash
+# Terminal 1: Start database services
+make dev-services
+
+# Terminal 2: Run backend
+make run-be
+
+# Terminal 3: Run frontend
+make run-fe
 ```
 
 This is the recommended pattern for Dev Container development - the container provides development tools (Python, Node, linters) while database services run in their own containers.
