@@ -11,7 +11,7 @@ export default function OrganizationPage() {
       key: 'departments',
       label: (
         <span>
-          <ApartmentOutlined />
+          <ApartmentOutlined style={{ marginRight: 8 }} />
           Departments
         </span>
       ),
@@ -21,7 +21,7 @@ export default function OrganizationPage() {
       key: 'positions',
       label: (
         <span>
-          <IdcardOutlined />
+          <IdcardOutlined style={{ marginRight: 8 }} />
           Positions
         </span>
       ),
