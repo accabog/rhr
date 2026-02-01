@@ -77,10 +77,10 @@ dev: dev-services
 	@echo "Starting backend and frontend..."
 	@echo "Press Ctrl+C to stop"
 	@echo ""
-	@bash -c 'trap "kill 0" EXIT; \
+	@(trap 'kill %1 %2 2>/dev/null; exit 0' INT TERM; \
 		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
 		(cd frontend && npm run dev -- --host 0.0.0.0) & \
-		wait'
+		wait)
 
 stop:
 	@echo "Stopping all services..."
