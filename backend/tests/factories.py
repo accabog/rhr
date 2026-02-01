@@ -152,7 +152,7 @@ class EmployeeFactory(DjangoModelFactory):
 class EmployeeWithUserFactory(EmployeeFactory):
     """Factory for Employee with linked User account."""
 
-    user = factory.SubFactory(UserFactory)
+    user = factory.SubFactory(UserFactory)  # type: ignore[assignment]
 
     @factory.lazy_attribute
     def email(self):
@@ -211,7 +211,7 @@ class TimeEntryFactory(DjangoModelFactory):
 class ActiveTimeEntryFactory(TimeEntryFactory):
     """Factory for currently active time entry (clocked in, not out)."""
 
-    end_time = None
+    end_time = None  # type: ignore[assignment]
     break_minutes = 0
 
 
@@ -236,7 +236,7 @@ class SickLeaveTypeFactory(LeaveTypeFactory):
 
     name = "Sick Leave"
     code = "SICK"
-    max_consecutive_days = None
+    max_consecutive_days = None  # type: ignore[assignment]
     color = "#ef4444"
 
 
