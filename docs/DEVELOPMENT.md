@@ -258,6 +258,25 @@ make logs
 2. Check Docker has enough resources (4GB+ RAM recommended)
 3. Try rebuilding: `Ctrl+Shift+P` → "Dev Containers: Rebuild Container"
 
+### Docker-in-Docker Volume Mount Issues
+
+When running inside the Dev Container, `make up` may fail with volume mount errors. This is a known Docker-in-Docker limitation where container paths don't resolve correctly for volume mounts.
+
+**Workaround:** Run database services via Docker, but run application services natively:
+
+```bash
+# Start only database services
+docker compose up -d db redis
+
+# Run backend natively (in one terminal)
+cd backend && python manage.py runserver
+
+# Run frontend natively (in another terminal)
+cd frontend && npm run dev
+```
+
+This is the recommended pattern for Dev Container development - the container provides development tools (Python, Node, linters) while database services run in their own containers.
+
 ## Claude Code Integration
 
 ### Custom Skills
