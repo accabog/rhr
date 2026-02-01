@@ -67,7 +67,7 @@ docker-compose exec backend python manage.py createsuperuser
 |-------|-------------|
 | [Getting Started](docs/getting-started.md) | Installation and first steps |
 | [Architecture](docs/architecture.md) | System design with diagrams |
-| [Development](docs/development.md) | Local dev setup and debugging |
+| [Development](docs/DEVELOPMENT.md) | Local dev setup and debugging |
 | [API Reference](docs/api.md) | REST API documentation |
 | [Deployment](docs/deployment.md) | Production deployment guide |
 | [Database Schema](docs/database.md) | Data model and relationships |

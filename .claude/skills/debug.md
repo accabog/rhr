@@ -214,7 +214,12 @@ First, determine what type of issue they're experiencing:
    make up
    ```
 
-6. **Nuclear option (destroys data)**:
+6. **Frontend package errors** (stale node_modules volume):
+   ```bash
+   make refresh-frontend
+   ```
+
+7. **Nuclear option (destroys data)**:
    ```bash
    make clean
    make up

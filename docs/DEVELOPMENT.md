@@ -140,7 +140,7 @@ After running the script, open a new terminal or run `source ~/.bashrc` to activ
 
 ### Manual Setup
 
-For other Linux distributions, macOS, or Windows, install the tools manually:
+For other Linux distributions, macOS, or Windows, install the tools manually.
 
 ### Backend Setup
 
@@ -181,6 +181,20 @@ npm ci
 # Start dev server
 npm run dev
 ```
+
+### IDE Setup
+
+**VS Code Extensions:**
+- Python (ms-python.python)
+- Pylance (ms-python.vscode-pylance)
+- ESLint (dbaeumer.vscode-eslint)
+- Prettier (esbenp.prettier-vscode)
+- Ruff (charliermarsh.ruff)
+
+**PyCharm:**
+- Enable Django support
+- Configure Python interpreter to use virtual environment
+- Set up JavaScript language version to ES2022
 
 ## Makefile Commands
 
@@ -361,6 +375,95 @@ make run-fe
 ```
 
 This is the recommended pattern for Dev Container development - the container provides development tools (Python, Node, linters) while database services run in their own containers.
+
+## Debugging
+
+### Backend Debugging
+
+**Using logging:**
+```python
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Debug message")
+```
+
+**Using Django Debug Toolbar:**
+Already configured in local settings. Visit any page to see the debug panel.
+
+**Using pdb/ipdb:**
+```python
+import pdb; pdb.set_trace()
+# or with IPython
+import ipdb; ipdb.set_trace()
+```
+
+**VS Code launch.json:**
+```json
+{
+  "name": "Django",
+  "type": "python",
+  "request": "launch",
+  "program": "${workspaceFolder}/backend/manage.py",
+  "args": ["runserver", "--noreload"],
+  "django": true
+}
+```
+
+### Frontend Debugging
+
+**React Developer Tools:**
+Install the browser extension for React component inspection.
+
+**TanStack Query DevTools:**
+Open browser DevTools and look for the "React Query" tab to inspect query state, cache, and refetch triggers.
+
+**VS Code launch.json:**
+```json
+{
+  "name": "Chrome",
+  "type": "chrome",
+  "request": "launch",
+  "url": "http://localhost:3000",
+  "webRoot": "${workspaceFolder}/frontend/src"
+}
+```
+
+## Management Commands
+
+### sync_holidays
+
+Sync national holidays from the Nager.Date API for all tenants or a specific tenant.
+
+```bash
+# Sync holidays for all tenants (current + next year)
+python manage.py sync_holidays
+
+# Sync for a specific tenant
+python manage.py sync_holidays --tenant=acme
+
+# Sync a specific country
+python manage.py sync_holidays --country=US
+
+# Sync specific years
+python manage.py sync_holidays --year=2025 --year=2026
+
+# Combine options
+python manage.py sync_holidays --tenant=acme --country=DE --year=2025
+```
+
+## Media Files
+
+### Upload Paths
+
+| Content Type | Upload Path | Description |
+|--------------|-------------|-------------|
+| Tenant Logos | `media/tenant_logos/` | Full organization logos |
+| Tenant Icons | `media/tenant_logos/icons/` | Compact sidebar icons |
+| User Avatars | `media/avatars/` | User profile pictures |
+| Employee Avatars | `media/employee_avatars/` | Employee profile pictures |
+| Documents | `media/documents/%Y/%m/` | Uploaded documents (organized by date) |
+
+In local development, media files are served by Django's development server. In production, media files should be served by Nginx or a CDN.
 
 ## Claude Code Integration
 
