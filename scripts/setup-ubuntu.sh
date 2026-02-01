@@ -69,6 +69,7 @@ Options:
 
 This script installs:
   - Python $PYTHON_VERSION (via pyenv)
+  - uv (fast Python package manager)
   - Node.js $NODE_VERSION (via nvm)
   - Docker and Docker Compose v2
   - Development tools (ripgrep, fd, gh CLI)
@@ -260,6 +261,19 @@ install_nvm() {
     log_info "Node.js $(node --version) installed via nvm"
 }
 
+install_uv() {
+    log_step "Installing uv (fast Python package manager)..."
+
+    if command -v uv &> /dev/null; then
+        log_info "uv already installed: $(uv --version)"
+    else
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Add to PATH for current session
+        export PATH="$HOME/.local/bin:$PATH"
+        log_info "uv installed: $(uv --version)"
+    fi
+}
+
 install_dev_tools() {
     log_step "Installing developer tools..."
 
@@ -400,6 +414,7 @@ print_summary() {
     echo ""
     echo "Installed:"
     echo "  - Python $PYTHON_VERSION (via pyenv)"
+    echo "  - uv (fast Python package manager)"
     echo "  - Node.js $NODE_VERSION (via nvm)"
     if ! $SKIP_DOCKER; then
         echo "  - Docker + Docker Compose v2"
@@ -419,6 +434,7 @@ print_summary() {
     echo ""
     echo "1. Verify installations:"
     echo "   python --version   # Should show $PYTHON_VERSION.x"
+    echo "   uv --version       # Should show uv x.x.x"
     echo "   node --version     # Should show v$NODE_VERSION.x"
     if ! $SKIP_DOCKER; then
         echo "   docker --version"
@@ -427,11 +443,9 @@ print_summary() {
     echo "2. Clone and set up the project:"
     echo "   git clone <repo-url> rhr && cd rhr"
     echo ""
-    echo "3. Install backend dependencies:"
+    echo "3. Install backend dependencies (using uv):"
     echo "   cd backend"
-    echo "   python -m venv .venv"
-    echo "   source .venv/bin/activate"
-    echo "   pip install -e \".[dev]\""
+    echo "   uv sync"
     echo ""
     echo "4. Install frontend dependencies:"
     echo "   cd frontend"
@@ -464,6 +478,7 @@ main() {
     install_system_packages
     install_docker
     install_pyenv
+    install_uv
     install_nvm
     install_dev_tools
     install_playwright_deps

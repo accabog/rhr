@@ -88,7 +88,7 @@
 
   // Start services and install dependencies
   "initializeCommand": "docker compose up -d db redis",
-  "postCreateCommand": "cd /workspace/backend && pip install -e '.[dev]' && cd /workspace/frontend && npm ci",
+  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci",
   "postStartCommand": "echo '🚀 Dev container ready! Services running on host.'",
 
   // Environment variables

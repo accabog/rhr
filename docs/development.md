@@ -32,23 +32,39 @@ make logs
 
 ## Option 1: Dev Container (Recommended)
 
-The Dev Container provides a fully configured development environment with all tools pre-installed.
+The Dev Container provides a fully configured development environment with all tools pre-installed. It uses [Dev Container Features](https://containers.dev/features) for automatic tool installation and updates.
 
 ### What's Included
 
-| Tool | Version | Purpose |
-|------|---------|---------|
+**Installed via Dev Container Features (auto-updating):**
+
+| Feature | Version | Purpose |
+|---------|---------|---------|
 | Python | 3.12 | Backend development |
 | Node.js | 20.x | Frontend development |
-| ruff | latest | Python linting/formatting |
-| mypy | latest | Python type checking |
-| pytest | latest | Python testing |
-| pytest-benchmark | latest | Performance benchmarks |
-| ESLint | latest | JavaScript/TypeScript linting |
-| Prettier | latest | Code formatting |
-| Playwright | latest | E2E and visual regression testing |
-| PostgreSQL client | latest | Database access |
-| Redis CLI | latest | Cache debugging |
+| Docker CLI | latest | Container management from inside Dev Container |
+| GitHub CLI | latest | GitHub operations (`gh pr`, `gh issue`, etc.) |
+
+**Installed via Dockerfile (system packages only):**
+
+| Tool | Purpose |
+|------|---------|
+| ripgrep (`rg`) | Fast code search |
+| fd | Fast file finder |
+| PostgreSQL client | Database access |
+| Redis CLI | Cache debugging |
+| Playwright deps | System libraries for E2E browser testing |
+
+**Installed via postCreateCommand (runs after Features):**
+
+| Tool | Purpose |
+|------|---------|
+| uv | Fast Python package manager (10-100x faster than pip) |
+| ruff, mypy, ipython, httpie, rich | Python dev tools |
+| @anthropic-ai/claude-code, typescript | Node global tools |
+| Backend deps | Django, pytest, etc. (via `uv sync`) |
+| Frontend deps | React, ESLint, Prettier (via `npm ci`) |
+| Playwright browsers | Chromium for E2E tests |
 
 ### VS Code Extensions (Auto-installed)
 
@@ -71,7 +87,7 @@ The Dev Container provides a fully configured development environment with all t
    - Open the project in VS Code
    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
    - Select "Dev Containers: Reopen in Container"
-   - Wait for the container to build (~3-5 minutes first time)
+   - Wait for the container to build (~1-2 minutes first time)
 
 3. **Start Services**
    ```bash
@@ -95,8 +111,8 @@ The Dev Container provides a fully configured development environment with all t
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │       Dev Container (VS Code runs here)           │   │
-│  │  • Python 3.12 + ruff, mypy, pytest              │   │
-│  │  • Node 20 + eslint, prettier, typescript        │   │
+│  │  Base: mcr.microsoft.com/devcontainers/base       │   │
+│  │  Features: Python 3.12, Node 20, Docker, gh CLI  │   │
 │  │  • Backend deps installed (for autocomplete)     │   │
 │  │  • Frontend deps installed (for TypeScript)      │   │
 │  └───────────────────────┬──────────────────────────┘   │
@@ -110,6 +126,28 @@ The Dev Container provides a fully configured development environment with all t
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘│   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
+```
+
+### Dev Container Features
+
+The Dev Container uses [Features](https://containers.dev/features) to declaratively install tools. This provides:
+- **Faster builds**: Pre-built feature layers are cached and reused
+- **Automatic updates**: Features are maintained by the community
+- **Simpler Dockerfile**: Only ~35 lines for system packages
+
+**Build order**: Dockerfile → Features → postCreateCommand
+
+This means the Dockerfile can only install system packages (apt). Python/Node tools must be installed in `postCreateCommand` since Features provide Python and Node.
+
+Current features (defined in `.devcontainer/devcontainer.json`):
+```jsonc
+"features": {
+  "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+  "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+  "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+  "ghcr.io/devcontainers/features/github-cli:1": {},
+  "ghcr.io/devcontainers/features/common-utils:2": { "installZsh": false }
+}
 ```
 
 ## Option 2: Native Development
@@ -126,6 +164,7 @@ Run the automated setup script to install all development tools:
 
 This installs:
 - Python 3.12 (via pyenv)
+- uv (fast Python package manager)
 - Node.js 20 (via nvm)
 - Docker and Docker Compose v2
 - Development tools (ripgrep, fd, GitHub CLI)
@@ -149,13 +188,15 @@ For other Linux distributions, macOS, or Windows, install the tools manually.
 pyenv install 3.12
 pyenv local 3.12
 
-# Create virtual environment
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
-# Install dependencies
-pip install -e ".[dev]"
+# Install dependencies using uv (recommended - 10-100x faster)
+uv sync
+
+# Or using pip (traditional method)
+# python -m venv .venv
+# source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+# pip install -e ".[dev]"
 
 # Start services (postgres, redis)
 make up
@@ -166,6 +207,15 @@ python manage.py migrate
 # Start server
 python manage.py runserver
 ```
+
+### uv Commands Reference
+
+| Old (pip) | New (uv) | Purpose |
+|-----------|----------|---------|
+| `pip install -e ".[dev]"` | `uv sync` | Install all deps from lock file |
+| `pip install package` | `uv add package` | Add new dependency |
+| `pip uninstall package` | `uv remove package` | Remove dependency |
+| `pip list` | `uv pip list` | List installed packages |
 
 ### Frontend Setup
 
@@ -316,6 +366,20 @@ make logs
 1. Ensure Docker is running
 2. Check Docker has enough resources (4GB+ RAM recommended)
 3. Try rebuilding: `Ctrl+Shift+P` → "Dev Containers: Rebuild Container"
+
+### Verify Dev Container Tools
+
+After rebuilding the Dev Container, verify tools are installed correctly:
+
+```bash
+python --version    # 3.12.x
+uv --version        # uv x.x.x
+node --version      # v20.x
+docker --version    # Docker CLI available
+gh --version        # GitHub CLI available
+rg --version        # ripgrep
+fd --version        # fd
+```
 
 ### Docker Desktop WSL2 Build Errors
 

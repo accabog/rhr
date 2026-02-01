@@ -9,10 +9,13 @@ Multi-tenant HR platform with React frontend and Django REST Framework backend.
 
 ### Build Commands
 ```bash
-# Backend
-cd backend && pip install -e ".[dev]"
+# Backend (using uv - recommended)
+cd backend && uv sync
 cd backend && python manage.py migrate
 cd backend && python manage.py runserver
+
+# Backend (using pip - alternative)
+cd backend && pip install -e ".[dev]"
 
 # Frontend
 cd frontend && npm install
