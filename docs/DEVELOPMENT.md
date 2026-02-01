@@ -25,6 +25,8 @@ make logs
 ## Prerequisites
 
 - **Docker** (v20+) with Docker Compose v2
+  - **WSL2 users**: Use [Docker Desktop](https://www.docker.com/products/docker-desktop/) with WSL2 integration enabled (Settings → Resources → WSL Integration). Do NOT install Docker inside WSL2 as it conflicts with Docker Desktop.
+  - **Native Linux**: Install Docker via `./scripts/setup-ubuntu.sh` or your package manager.
 - **VS Code** (recommended) with Dev Containers extension
 - **Git**
 
@@ -246,6 +248,7 @@ All commands are run from the project root.
 |---------|-------------|
 | `make build` | Rebuild all containers |
 | `make clean` | Remove containers and volumes |
+| `make refresh-frontend` | Rebuild frontend with fresh node_modules |
 
 ## Environment Variables
 
@@ -299,6 +302,34 @@ make logs
 1. Ensure Docker is running
 2. Check Docker has enough resources (4GB+ RAM recommended)
 3. Try rebuilding: `Ctrl+Shift+P` → "Dev Containers: Rebuild Container"
+
+### Docker Desktop WSL2 Build Errors
+
+If you see credential helper errors when building:
+```
+fork/exec /usr/bin/docker-credential-desktop.exe: exec format error
+```
+
+This happens when switching from apt-installed Docker to Docker Desktop. Fix by clearing the old config:
+
+```bash
+echo '{}' > ~/.docker/config.json
+```
+
+### Frontend "Cannot find package" Errors
+
+If the frontend container fails with missing package errors after adding new dependencies:
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'some-package'
+```
+
+The anonymous `node_modules` volume is stale. Refresh it:
+
+```bash
+make refresh-frontend
+```
+
+This rebuilds the frontend image and recreates the container with a fresh volume.
 
 ### Docker-in-Docker Volume Mount Issues
 

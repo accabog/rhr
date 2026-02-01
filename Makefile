@@ -9,7 +9,7 @@ DOCKER_COMPOSE := docker compose
         migrate migrations shell seed seed-e2e \
         test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
-        build clean db-shell redis-cli
+        build clean refresh-frontend db-shell redis-cli
 
 # Default target
 help:
@@ -54,8 +54,9 @@ help:
 	@echo "  make redis-cli   Open Redis CLI"
 	@echo ""
 	@echo "Docker:"
-	@echo "  make build       Rebuild all containers"
-	@echo "  make clean       Remove containers and volumes"
+	@echo "  make build             Rebuild all containers"
+	@echo "  make clean             Remove containers and volumes"
+	@echo "  make refresh-frontend  Rebuild frontend with fresh node_modules"
 
 # ============================================================
 # Services
@@ -190,3 +191,9 @@ build:
 clean:
 	$(DOCKER_COMPOSE) down -v --remove-orphans
 	@echo "Containers and volumes removed"
+
+refresh-frontend:
+	$(DOCKER_COMPOSE) rm -sf frontend
+	$(DOCKER_COMPOSE) build frontend
+	$(DOCKER_COMPOSE) up -d frontend
+	@echo "Frontend refreshed with new dependencies"

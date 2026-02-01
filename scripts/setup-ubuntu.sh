@@ -140,6 +140,14 @@ install_docker() {
         return
     fi
 
+    # Detect WSL2 and skip Docker installation
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        log_warn "WSL2 detected. Skipping Docker installation."
+        log_info "Use Docker Desktop with WSL2 integration instead."
+        log_info "See: Docker Desktop → Settings → Resources → WSL Integration"
+        return
+    fi
+
     log_step "Installing Docker..."
 
     # Check if Docker is already installed
