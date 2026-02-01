@@ -5,7 +5,7 @@
 DOCKER_COMPOSE := docker compose
 
 .PHONY: help up down restart logs status \
-        dev dev-services run-be run-fe \
+        dev dev-services run-be run-fe stop \
         migrate migrations shell seed seed-e2e \
         test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
@@ -24,6 +24,7 @@ help:
 	@echo ""
 	@echo "Dev Container (recommended for VS Code Dev Container):"
 	@echo "  make dev         Start db/redis + backend/frontend natively"
+	@echo "  make stop        Stop all services (native + Docker)"
 	@echo "  make dev-services  Start only db and redis"
 	@echo "  make run-be      Run backend natively (separate terminal)"
 	@echo "  make run-fe      Run frontend natively (separate terminal)"
@@ -79,6 +80,13 @@ dev: dev-services
 		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
 		(cd frontend && npm run dev -- --host 0.0.0.0) & \
 		wait
+
+stop:
+	@echo "Stopping all services..."
+	@-pkill -f "python manage.py runserver" 2>/dev/null || true
+	@-pkill -f "vite" 2>/dev/null || true
+	@$(DOCKER_COMPOSE) down 2>/dev/null || true
+	@echo "All services stopped."
 
 dev-services:
 	@echo "Starting database services..."
