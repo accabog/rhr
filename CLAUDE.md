@@ -3,7 +3,7 @@
 ## Project Overview
 Multi-tenant HR platform with React frontend and Django REST Framework backend.
 
-> **Full development setup guide**: See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed environment setup, Dev Container usage, and troubleshooting.
+> **Full development setup guide**: See [docs/development.md](docs/development.md) for detailed environment setup, Dev Container usage, and troubleshooting.
 
 ## Quick Reference
 
