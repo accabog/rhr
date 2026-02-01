@@ -128,6 +128,17 @@ class TimesheetViewSet(viewsets.ModelViewSet):
         # Determine employee
         employee_id = serializer.validated_data.get("employee_id")
         if employee_id:
+            # Check authorization when generating for another employee
+            current_employee = self._get_current_employee(request)
+            is_different_employee = (
+                not current_employee or str(current_employee.id) != str(employee_id)
+            )
+            if is_different_employee and not self._has_approval_permission(request):
+                return Response(
+                    {"detail": "Cannot generate timesheets for other employees"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             employee = Employee.objects.filter(
                 tenant=request.tenant, id=employee_id
             ).first()
@@ -232,6 +243,12 @@ class TimesheetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a timesheet."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can approve timesheets"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         timesheet = self.get_object()
         approver = self._get_current_employee(request)
 
@@ -273,6 +290,12 @@ class TimesheetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
         """Reject a timesheet."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can reject timesheets"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         timesheet = self.get_object()
         rejector = self._get_current_employee(request)
 
@@ -308,6 +331,12 @@ class TimesheetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def reopen(self, request, pk=None):
         """Reopen a rejected timesheet for editing."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can reopen timesheets"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         timesheet = self.get_object()
 
         if timesheet.status != "rejected":
@@ -365,6 +394,13 @@ class TimesheetViewSet(viewsets.ModelViewSet):
             user=request.user,
             status="active",
         ).first()
+
+    def _has_approval_permission(self, request):
+        """Check if user has permission to approve/reject timesheets."""
+        membership = request.user.tenant_memberships.filter(
+            tenant=request.tenant
+        ).first()
+        return membership and membership.role in ("owner", "admin", "manager")
 
     def _recalculate_totals(self, timesheet):
         """Recalculate timesheet totals from time entries."""

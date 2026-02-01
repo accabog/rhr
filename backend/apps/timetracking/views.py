@@ -311,6 +311,12 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a time entry (manager action)."""
+        if not self._has_approval_permission(request):
+            return Response(
+                {"detail": "Only managers can approve time entries"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         entry = self.get_object()
         approver = self._get_current_employee(request)
 
@@ -337,3 +343,10 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
             user=request.user,
             status="active",
         ).first()
+
+    def _has_approval_permission(self, request):
+        """Check if user has permission to approve time entries."""
+        membership = request.user.tenant_memberships.filter(
+            tenant=request.tenant
+        ).first()
+        return membership and membership.role in ("owner", "admin", "manager")

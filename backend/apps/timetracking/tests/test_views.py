@@ -551,3 +551,13 @@ class TestTimeEntryApproval:
         # Note: This passes because authenticated_tenant_client doesn't
         # necessarily have an employee_with_user
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+
+    def test_employee_cannot_approve_time_entry(
+        self, authenticated_employee_client, tenant, time_entry
+    ):
+        """Test that regular employees cannot approve time entries."""
+        url = reverse("timeentry-approve", kwargs={"pk": time_entry.id})
+        response = authenticated_employee_client.post(url, {})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]

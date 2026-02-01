@@ -506,3 +506,94 @@ class TestPendingApproval:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == ts.id
+
+
+@pytest.mark.django_db
+class TestTimesheetAuthorization:
+    """Tests for timesheet authorization checks."""
+
+    def test_employee_cannot_approve_timesheet(
+        self, authenticated_employee_client, tenant, employee
+    ):
+        """Test that regular employees cannot approve timesheets."""
+        timesheet = Timesheet.objects.create(
+            tenant=tenant,
+            employee=employee,
+            period_start=date.today() - timedelta(days=14),
+            period_end=date.today() - timedelta(days=1),
+            status="submitted",
+        )
+
+        url = reverse("timesheet-approve", kwargs={"pk": timesheet.id})
+        response = authenticated_employee_client.post(url, {})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+    def test_employee_cannot_reject_timesheet(
+        self, authenticated_employee_client, tenant, employee
+    ):
+        """Test that regular employees cannot reject timesheets."""
+        timesheet = Timesheet.objects.create(
+            tenant=tenant,
+            employee=employee,
+            period_start=date.today() - timedelta(days=14),
+            period_end=date.today() - timedelta(days=1),
+            status="submitted",
+        )
+
+        url = reverse("timesheet-reject", kwargs={"pk": timesheet.id})
+        response = authenticated_employee_client.post(url, {"reason": "test"})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+    def test_employee_cannot_reopen_timesheet(
+        self, authenticated_employee_client, tenant, employee
+    ):
+        """Test that regular employees cannot reopen timesheets."""
+        timesheet = Timesheet.objects.create(
+            tenant=tenant,
+            employee=employee,
+            period_start=date.today() - timedelta(days=14),
+            period_end=date.today() - timedelta(days=1),
+            status="rejected",
+            rejection_reason="Fix entries",
+        )
+
+        url = reverse("timesheet-reopen", kwargs={"pk": timesheet.id})
+        response = authenticated_employee_client.post(url, {})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Only managers" in response.data["detail"]
+
+    def test_employee_cannot_generate_timesheet_for_other(
+        self, authenticated_employee_client, tenant, employee
+    ):
+        """Test that employees cannot generate timesheets for other employees."""
+        url = reverse("timesheet-generate")
+        data = {
+            "period_start": str(date.today() - timedelta(days=14)),
+            "period_end": str(date.today() - timedelta(days=1)),
+            "employee_id": str(employee.id),
+        }
+
+        response = authenticated_employee_client.post(url, data)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Cannot generate timesheets for other employees" in response.data["detail"]
+
+    def test_manager_can_generate_timesheet_for_other(
+        self, authenticated_tenant_client, tenant, employee
+    ):
+        """Test that managers can generate timesheets for other employees."""
+        url = reverse("timesheet-generate")
+        data = {
+            "period_start": str(date.today() - timedelta(days=14)),
+            "period_end": str(date.today() - timedelta(days=1)),
+            "employee_id": str(employee.id),
+        }
+
+        response = authenticated_tenant_client.post(url, data)
+
+        assert response.status_code == status.HTTP_201_CREATED
