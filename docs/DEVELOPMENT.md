@@ -112,7 +112,33 @@ The Dev Container provides a fully configured development environment with all t
 
 ## Option 2: Native Development
 
-If you prefer not to use Dev Containers, install tools locally:
+If you prefer not to use Dev Containers, install tools locally.
+
+### Quick Setup (Ubuntu 24.04)
+
+Run the automated setup script to install all development tools:
+
+```bash
+./scripts/setup-ubuntu.sh
+```
+
+This installs:
+- Python 3.12 (via pyenv)
+- Node.js 20 (via nvm)
+- Docker and Docker Compose v2
+- Development tools (ripgrep, fd, GitHub CLI)
+- Playwright browser dependencies
+
+Options:
+- `--skip-docker` - Skip Docker installation
+- `--skip-playwright` - Skip Playwright browser dependencies
+- `--help` - Show usage information
+
+After running the script, open a new terminal or run `source ~/.bashrc` to activate the new tools.
+
+### Manual Setup
+
+For other Linux distributions, macOS, or Windows, install the tools manually:
 
 ### Backend Setup
 
