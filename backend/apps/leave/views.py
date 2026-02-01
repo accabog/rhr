@@ -2,6 +2,7 @@
 Leave management views.
 """
 
+import logging
 from datetime import date
 from decimal import Decimal
 
@@ -27,6 +28,8 @@ from .serializers import (
     LeaveTypeSerializer,
 )
 from .services import HolidaySyncService, get_available_countries
+
+logger = logging.getLogger(__name__)
 
 
 class StandardPagination(PageNumberPagination):
@@ -507,9 +510,10 @@ class HolidayViewSet(viewsets.ModelViewSet):
                     "updated": total_updated,
                 })
 
-        except requests.RequestException as e:
+        except requests.RequestException:
+            logger.exception("Failed to fetch holidays from external API")
             return Response(
-                {"detail": f"Failed to fetch holidays from API: {str(e)}"},
+                {"detail": "Failed to fetch holidays from external API"},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
@@ -519,9 +523,10 @@ class HolidayViewSet(viewsets.ModelViewSet):
         try:
             countries = get_available_countries()
             return Response(countries)
-        except requests.RequestException as e:
+        except requests.RequestException:
+            logger.exception("Failed to fetch available countries from external API")
             return Response(
-                {"detail": f"Failed to fetch available countries: {str(e)}"},
+                {"detail": "Failed to fetch available countries from external API"},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
