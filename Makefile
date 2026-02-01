@@ -5,7 +5,7 @@
 DOCKER_COMPOSE := docker compose
 
 .PHONY: help up down restart logs status \
-        dev dev-services run-be run-fe stop stop-native \
+        dev dev-services run-be run-fe stop \
         migrate migrations shell seed seed-e2e \
         test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
@@ -75,19 +75,17 @@ up:
 dev: dev-services
 	@echo ""
 	@echo "Starting backend and frontend..."
-	@echo "Press Ctrl+C to stop, or run 'make stop' from another terminal"
+	@echo "Press Ctrl+C to stop"
 	@echo ""
-	@trap '$(MAKE) -s stop-native; exit 0' INT TERM; \
+	@bash -c 'trap "kill 0" EXIT; \
 		(cd backend && python manage.py runserver 0.0.0.0:8000) & \
 		(cd frontend && npm run dev -- --host 0.0.0.0) & \
-		wait
+		wait'
 
-stop-native:
+stop:
+	@echo "Stopping all services..."
 	@-pkill -f 'manage\.py runserver' 2>/dev/null || true
 	@-pkill -f 'node.*vite' 2>/dev/null || true
-
-stop: stop-native
-	@echo "Stopping all services..."
 	@$(DOCKER_COMPOSE) down 2>/dev/null || true
 	@echo "All services stopped."
 
