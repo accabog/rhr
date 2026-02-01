@@ -23,24 +23,38 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from tests.factories import (
-    ContractFactory,
-    ContractTypeFactory,
-    DepartmentFactory,
-    EmployeeFactory,
-    LeaveBalanceFactory,
-    LeaveRequestFactory,
-    LeaveTypeFactory,
-    PositionFactory,
-    TenantFactory,
-    TenantMembershipFactory,
-    TenantSettingsFactory,
-    TimeEntryFactory,
-    TimeEntryTypeFactory,
-    TimesheetFactory,
-)
+from apps.contracts.models import Contract, ContractType
+from apps.employees.models import Department, Employee, Position
+from apps.leave.models import LeaveBalance, LeaveRequest, LeaveType
+from apps.tenants.models import Tenant, TenantMembership, TenantSettings
+from apps.timesheets.models import Timesheet
+from apps.timetracking.models import TimeEntry, TimeEntryType
 
 User = get_user_model()
+
+# Faker-like data for generating realistic names
+FIRST_NAMES = [
+    "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
+    "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
+    "Thomas", "Sarah", "Christopher", "Karen", "Daniel", "Lisa", "Matthew", "Nancy",
+    "Anthony", "Betty", "Mark", "Margaret", "Donald", "Sandra", "Steven", "Ashley",
+]
+LAST_NAMES = [
+    "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+    "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson",
+    "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson",
+    "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker",
+]
+
+
+def generate_employee_id(n: int) -> str:
+    """Generate employee ID like EMP-00001."""
+    return f"EMP-{n:05d}"
+
+
+def generate_phone() -> str:
+    """Generate a fake phone number."""
+    return f"+1-{random.randint(200, 999)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
 
 
 # Demo user credentials (known for testing)
@@ -95,14 +109,14 @@ DEMO_TENANTS = [
 
 # Department hierarchy templates
 DEPARTMENT_TEMPLATES = [
-    {"name": "Executive", "code": "EXEC", "parent": None, "country": None},
-    {"name": "Finance", "code": "FIN", "parent": "Executive", "country": None},
-    {"name": "Human Resources", "code": "HR", "parent": "Executive", "country": None},
-    {"name": "Engineering", "code": "ENG", "parent": "Executive", "country": None},
-    {"name": "Backend Team", "code": "ENG-BE", "parent": "Engineering", "country": None},
-    {"name": "Frontend Team", "code": "ENG-FE", "parent": "Engineering", "country": None},
-    {"name": "QA Team", "code": "ENG-QA", "parent": "Engineering", "country": None},
-    {"name": "Operations", "code": "OPS", "parent": "Executive", "country": None},
+    {"name": "Executive", "code": "EXEC", "parent": None},
+    {"name": "Finance", "code": "FIN", "parent": "Executive"},
+    {"name": "Human Resources", "code": "HR", "parent": "Executive"},
+    {"name": "Engineering", "code": "ENG", "parent": "Executive"},
+    {"name": "Backend Team", "code": "ENG-BE", "parent": "Engineering"},
+    {"name": "Frontend Team", "code": "ENG-FE", "parent": "Engineering"},
+    {"name": "QA Team", "code": "ENG-QA", "parent": "Engineering"},
+    {"name": "Operations", "code": "OPS", "parent": "Executive"},
 ]
 
 # Position templates by department
@@ -152,6 +166,10 @@ CONTRACT_TYPE_TEMPLATES = [
 
 class Command(BaseCommand):
     help = "Seed staging database with realistic demo data"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._employee_counter = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -213,11 +231,6 @@ class Command(BaseCommand):
         """Remove existing demo data for idempotency."""
         self.stdout.write("\nClearing existing demo data...")
 
-        from apps.contracts.models import Contract
-        from apps.leave.models import LeaveRequest
-        from apps.tenants.models import Tenant
-        from apps.timetracking.models import TimeEntry
-
         # Delete demo users (by email pattern)
         demo_user_count = User.objects.filter(email__endswith="@demo.com").delete()[0]
         self.stdout.write(f"  Deleted {demo_user_count} demo users")
@@ -257,14 +270,15 @@ class Command(BaseCommand):
 
         tenants = []
         for config in DEMO_TENANTS:
-            tenant = TenantFactory(
+            tenant = Tenant.objects.create(
                 name=config["name"],
                 slug=config["slug"],
                 plan="professional",
                 max_employees=100,
+                is_active=True,
             )
             # Create tenant settings
-            TenantSettingsFactory(
+            TenantSettings.objects.create(
                 tenant=tenant,
                 timezone=config["timezone"],
                 currency=config["currency"],
@@ -280,7 +294,7 @@ class Command(BaseCommand):
 
         for tenant in tenants:
             for user_data in users:
-                TenantMembershipFactory(
+                TenantMembership.objects.create(
                     user=user_data["user"],
                     tenant=tenant,
                     role=user_data["role"],
@@ -294,6 +308,9 @@ class Command(BaseCommand):
         self.stdout.write(f"\n{'=' * 40}")
         self.stdout.write(f"Seeding data for: {tenant.name}")
         self.stdout.write(f"{'=' * 40}")
+
+        # Reset employee counter for each tenant
+        self._employee_counter = 0
 
         # Create organizational structure
         departments = self._create_departments(tenant, config["country"])
@@ -319,7 +336,7 @@ class Command(BaseCommand):
 
         for template in DEPARTMENT_TEMPLATES:
             parent = departments.get(template["parent"])
-            dept = DepartmentFactory(
+            dept = Department.objects.create(
                 tenant=tenant,
                 name=template["name"],
                 code=template["code"],
@@ -338,7 +355,7 @@ class Command(BaseCommand):
 
         for template in POSITION_TEMPLATES:
             dept = departments.get(template["dept"])
-            pos = PositionFactory(
+            pos = Position.objects.create(
                 tenant=tenant,
                 title=template["title"],
                 code=template["code"],
@@ -365,7 +382,7 @@ class Command(BaseCommand):
         managers = []
 
         for pos in manager_positions[:5]:
-            emp = EmployeeFactory(
+            emp = self._create_employee(
                 tenant=tenant,
                 department=pos.department,
                 position=pos,
@@ -390,7 +407,7 @@ class Command(BaseCommand):
             manager = random.choice(managers) if managers else None
             status = statuses[i] if i < len(statuses) else "active"
 
-            emp = EmployeeFactory(
+            emp = self._create_employee(
                 tenant=tenant,
                 department=pos.department if pos else random.choice(department_list),
                 position=pos,
@@ -403,12 +420,41 @@ class Command(BaseCommand):
         self.stdout.write(f"  Created {len(employees)} employees")
         return employees
 
+    def _create_employee(self, tenant, department, position, manager, status, hire_date):
+        """Create a single employee with generated data."""
+        self._employee_counter += 1
+        first_name = random.choice(FIRST_NAMES)
+        last_name = random.choice(LAST_NAMES)
+        email = f"{first_name.lower()}.{last_name.lower()}{self._employee_counter}@example.com"
+
+        return Employee.objects.create(
+            tenant=tenant,
+            employee_id=generate_employee_id(self._employee_counter),
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=generate_phone(),
+            department=department,
+            position=position,
+            manager=manager,
+            status=status,
+            hire_date=hire_date,
+            date_of_birth=datetime.date(
+                random.randint(1960, 2000),
+                random.randint(1, 12),
+                random.randint(1, 28),
+            ),
+            address=f"{random.randint(100, 9999)} Main Street, City, State {random.randint(10000, 99999)}",
+            emergency_contact_name=f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}",
+            emergency_contact_phone=generate_phone(),
+        )
+
     def _create_leave_types(self, tenant):
         """Create leave types for the tenant."""
         leave_types = {}
 
         for template in LEAVE_TYPE_TEMPLATES:
-            lt = LeaveTypeFactory(
+            lt = LeaveType.objects.create(
                 tenant=tenant,
                 name=template["name"],
                 code=template["code"],
@@ -428,7 +474,7 @@ class Command(BaseCommand):
         entry_types = {}
 
         for template in TIME_ENTRY_TYPE_TEMPLATES:
-            tet = TimeEntryTypeFactory(
+            tet = TimeEntryType.objects.create(
                 tenant=tenant,
                 name=template["name"],
                 code=template["code"],
@@ -447,7 +493,7 @@ class Command(BaseCommand):
         contract_types = {}
 
         for template in CONTRACT_TYPE_TEMPLATES:
-            ct = ContractTypeFactory(
+            ct = ContractType.objects.create(
                 tenant=tenant,
                 name=template["name"],
                 code=template["code"],
@@ -475,7 +521,7 @@ class Command(BaseCommand):
                 entitled = 20 if code == "ANNUAL" else (10 if code == "SICK" else 5)
                 used = Decimal(random.randint(0, int(entitled // 2)))
 
-                LeaveBalanceFactory(
+                LeaveBalance.objects.create(
                     tenant=tenant,
                     employee=emp,
                     leave_type=lt,
@@ -506,7 +552,7 @@ class Command(BaseCommand):
             duration = random.randint(1, 5)
             end_date = start_date + datetime.timedelta(days=duration - 1)
 
-            LeaveRequestFactory(
+            LeaveRequest.objects.create(
                 tenant=tenant,
                 employee=emp,
                 leave_type=lt,
@@ -546,7 +592,7 @@ class Command(BaseCommand):
                 end_hour = start_hour + 8 + random.randint(0, 1)
                 end_minute = random.choice([0, 15, 30, 45])
 
-                TimeEntryFactory(
+                TimeEntry.objects.create(
                     tenant=tenant,
                     employee=emp,
                     entry_type=regular_type,
@@ -560,7 +606,7 @@ class Command(BaseCommand):
 
                 # 20% chance of overtime entry
                 if random.random() < 0.2:
-                    TimeEntryFactory(
+                    TimeEntry.objects.create(
                         tenant=tenant,
                         employee=emp,
                         entry_type=overtime_type,
@@ -591,7 +637,6 @@ class Command(BaseCommand):
 
             status = statuses[i]
             submitted_at = None
-            approved_at = None
 
             if status in ("submitted", "approved"):
                 submitted_at = timezone.make_aware(
@@ -601,7 +646,7 @@ class Command(BaseCommand):
                     )
                 )
 
-            TimesheetFactory(
+            Timesheet.objects.create(
                 tenant=tenant,
                 employee=emp,
                 period_start=period_start,
@@ -611,7 +656,7 @@ class Command(BaseCommand):
                 total_overtime_hours=Decimal(random.randint(0, 10)),
                 total_break_hours=Decimal("10.0"),
                 submitted_at=submitted_at,
-                approved_at=approved_at if status == "approved" else None,
+                approved_at=submitted_at if status == "approved" else None,
             )
             timesheet_count += 1
 
@@ -627,8 +672,6 @@ class Command(BaseCommand):
         contr_type = contract_types.get("CONTR", ft_type)
 
         # Determine salary currency based on tenant
-        from apps.tenants.models import TenantSettings
-
         try:
             currency = tenant.settings.currency
         except TenantSettings.DoesNotExist:
@@ -661,7 +704,7 @@ class Command(BaseCommand):
                 status = "draft"
                 end_date = today + datetime.timedelta(days=365)
 
-            ContractFactory(
+            Contract.objects.create(
                 tenant=tenant,
                 employee=emp,
                 contract_type=ct,
