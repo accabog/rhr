@@ -5,8 +5,8 @@
 DOCKER_COMPOSE := docker compose
 
 .PHONY: help up down restart logs status \
-        migrate migrations shell seed \
-        test test-be test-fe test-cov \
+        migrate migrations shell seed seed-e2e \
+        test test-be test-fe test-e2e test-cov test-bench \
         lint lint-be lint-fe format \
         build clean db-shell redis-cli
 
@@ -26,12 +26,15 @@ help:
 	@echo "  make migrations  Create new migrations"
 	@echo "  make shell       Open Django shell"
 	@echo "  make seed        Seed development data"
+	@echo "  make seed-e2e    Seed E2E test data"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test        Run all tests"
+	@echo "  make test        Run all tests (unit)"
 	@echo "  make test-be     Run backend tests"
 	@echo "  make test-fe     Run frontend tests"
+	@echo "  make test-e2e    Run E2E tests (Playwright)"
 	@echo "  make test-cov    Run backend tests with coverage"
+	@echo "  make test-bench  Run performance benchmarks"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint        Run all linters"
@@ -83,6 +86,9 @@ shell:
 seed:
 	$(DOCKER_COMPOSE) exec backend python manage.py seed_staging_data
 
+seed-e2e:
+	cd backend && python manage.py seed_e2e_data
+
 # ============================================================
 # Testing
 # ============================================================
@@ -98,6 +104,15 @@ test-fe:
 test-cov:
 	$(DOCKER_COMPOSE) exec backend pytest --cov=apps --cov-report=html
 	@echo "Coverage report: backend/htmlcov/index.html"
+
+test-e2e:
+	cd frontend && npm run test:e2e
+
+test-e2e-ui:
+	cd frontend && npm run test:e2e:ui
+
+test-bench:
+	cd backend && pytest tests/benchmarks/ -v --benchmark-only
 
 # ============================================================
 # Code Quality
