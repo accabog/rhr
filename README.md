@@ -22,13 +22,13 @@ Enterprise HR management platform with multi-tenant support, time tracking, leav
 
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Run database migrations
-docker-compose exec backend python manage.py migrate
+docker compose exec backend python manage.py migrate
 
 # Create admin user (optional)
-docker-compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py createsuperuser
 ```
 
 **Access the application:**

@@ -18,8 +18,8 @@ Please be respectful and considerate in all interactions. We are committed to pr
 
 2. **Start with Docker (recommended):**
    ```bash
-   docker-compose up -d
-   docker-compose exec backend python manage.py migrate
+   docker compose up -d
+   docker compose exec backend python manage.py migrate
    ```
 
 3. **Or set up manually:**
@@ -128,11 +128,12 @@ function EmployeeCard({ employee, onEdit }: EmployeeCardProps) {
 }
 ```
 
-Run linting:
+Run linting and type checking:
 ```bash
 cd frontend
-npm run lint
-npx tsc --noEmit
+npm run lint          # Check for lint errors
+npm run lint:fix      # Auto-fix lint errors
+npm run typecheck     # TypeScript type checking
 ```
 
 ## Testing Requirements

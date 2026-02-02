@@ -57,6 +57,10 @@ frontend/src/
 │   │   └── CalendarPage.tsx
 │   ├── dashboard/          # Dashboard
 │   ├── employees/          # Employee management
+│   ├── organization/       # Departments and positions management
+│   │   ├── OrganizationPage.tsx
+│   │   ├── DepartmentsTab.tsx
+│   │   └── PositionsTab.tsx
 │   ├── profile/            # User profile management
 │   │   └── ProfilePage.tsx
 │   ├── settings/           # App and tenant settings

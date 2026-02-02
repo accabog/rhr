@@ -14,7 +14,6 @@ Production:  https://your-domain.com/api/v1/
 Interactive API documentation is available at:
 
 - **Swagger UI**: `/api/docs/`
-- **ReDoc**: `/api/redoc/`
 
 ## Authentication
 
@@ -244,17 +243,17 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/leave-types/` | List leave types |
-| GET | `/leave-balances/` | List leave balances |
-| GET | `/leave-requests/` | List leave requests |
-| POST | `/leave-requests/` | Create leave request |
-| GET | `/leave-requests/{id}/` | Get leave request details |
-| POST | `/leave-requests/{id}/approve/` | Approve request |
-| POST | `/leave-requests/{id}/reject/` | Reject request |
-| POST | `/leave-requests/{id}/cancel/` | Cancel request |
-| GET | `/holidays/` | List holidays |
-| POST | `/holidays/sync/` | Sync national holidays from Nager.Date |
-| GET | `/holidays/upcoming/` | List upcoming holidays |
+| GET | `/leave/types/` | List leave types |
+| GET | `/leave/balances/` | List leave balances |
+| GET | `/leave/requests/` | List leave requests |
+| POST | `/leave/requests/` | Create leave request |
+| GET | `/leave/requests/{id}/` | Get leave request details |
+| POST | `/leave/requests/{id}/approve/` | Approve request |
+| POST | `/leave/requests/{id}/reject/` | Reject request |
+| POST | `/leave/requests/{id}/cancel/` | Cancel request |
+| GET | `/leave/holidays/` | List holidays |
+| POST | `/leave/holidays/sync/` | Sync national holidays from Nager.Date |
+| GET | `/leave/holidays/upcoming/` | List upcoming holidays |
 
 ### Contracts
 
@@ -265,7 +264,7 @@ GET /api/v1/employees/?cursor=abc123&page_size=20
 | GET | `/contracts/{id}/` | Get contract details |
 | PUT | `/contracts/{id}/` | Update contract |
 | DELETE | `/contracts/{id}/` | Delete contract |
-| GET | `/contract-types/` | List contract types |
+| GET | `/contracts/types/` | List contract types |
 
 ### Documents
 
@@ -332,7 +331,7 @@ curl -X POST http://localhost:8000/api/v1/employees/ \
 ### Submit a Leave Request
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/leave-requests/ \
+curl -X POST http://localhost:8000/api/v1/leave/requests/ \
   -H "Authorization: Bearer <token>" \
   -H "X-Tenant-ID: acme-corp" \
   -H "Content-Type: application/json" \
@@ -386,7 +385,7 @@ curl -X POST http://localhost:8000/api/v1/tenants/acme-corp/logo/ \
 ### Sync National Holidays
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/holidays/sync/ \
+curl -X POST http://localhost:8000/api/v1/leave/holidays/sync/ \
   -H "Authorization: Bearer <token>" \
   -H "X-Tenant-ID: acme-corp" \
   -H "Content-Type: application/json" \

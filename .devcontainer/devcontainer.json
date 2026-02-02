@@ -99,7 +99,7 @@
 
   // Start services and install dependencies
   "initializeCommand": "docker compose up -d db redis",
-  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci && npm install -g typescript prettier npm-check-updates @anthropic-ai/claude-code",
+  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci && npm install -g typescript prettier npm-check-updates @anthropic-ai/claude-code && bash /workspace/.devcontainer/mcp-setup.sh",
   "postStartCommand": "echo '🚀 Dev container ready! Services running on host.'",
 
   // Environment variables

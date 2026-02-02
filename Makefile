@@ -169,7 +169,7 @@ lint-fe:
 
 format:
 	$(DOCKER_COMPOSE) exec backend ruff format .
-	$(DOCKER_COMPOSE) exec frontend npm run format 2>/dev/null || echo "No format script in frontend"
+	$(DOCKER_COMPOSE) exec frontend npm run lint:fix
 
 # ============================================================
 # Database

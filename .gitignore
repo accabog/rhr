@@ -95,7 +95,7 @@ ssl/*.pem
 .temp/
 tmp/
 .playwright-mcp/
-.mcp.json
+.mcp.json.local
 .claude/settings.local.json
 
 # Playwright test artifacts

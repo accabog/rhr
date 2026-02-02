@@ -20,13 +20,13 @@ git clone https://github.com/your-org/rhr.git
 cd rhr
 
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Run database migrations
-docker-compose exec backend python manage.py migrate
+docker compose exec backend python manage.py migrate
 
 # Create a superuser (optional)
-docker-compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py createsuperuser
 ```
 
 The application is now running at:
@@ -46,7 +46,7 @@ Tenants represent organizations in the multi-tenant system. Create one via the D
 
 ```bash
 # Via Django shell
-docker-compose exec backend python manage.py shell
+docker compose exec backend python manage.py shell
 
 >>> from apps.tenants.models import Tenant
 >>> tenant = Tenant.objects.create(name="Acme Corp", slug="acme")
@@ -79,10 +79,10 @@ Import national holidays for your departments' countries:
 
 ```bash
 # Via Django shell
-docker-compose exec backend python manage.py sync_holidays
+docker compose exec backend python manage.py sync_holidays
 
 # Or for a specific country
-docker-compose exec backend python manage.py sync_holidays --country=US
+docker compose exec backend python manage.py sync_holidays --country=US
 ```
 
 This fetches public holidays from the Nager.Date API and stores them for leave calculations.
@@ -100,12 +100,13 @@ If you prefer to run services without Docker:
 ```bash
 cd backend
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Install dependencies using uv (recommended - fast)
+uv sync
 
-# Install dependencies
-pip install -e ".[dev]"
+# Or using pip (traditional method)
+# python -m venv venv
+# source venv/bin/activate  # On Windows: venv\Scripts\activate
+# pip install -e ".[dev]"
 
 # Set environment variables
 export DATABASE_URL=postgres://user:password@localhost:5432/rhr
