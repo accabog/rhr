@@ -3,6 +3,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { App as AntApp } from 'antd';
 import { ReactNode } from 'react';
 
@@ -29,16 +30,18 @@ interface WrapperProps {
 }
 
 /**
- * Test wrapper that provides QueryClient and Ant Design App context.
+ * Test wrapper that provides QueryClient, Google OAuth, and Ant Design App context.
  */
 export function createWrapper() {
   const queryClient = createTestQueryClient();
 
   return function Wrapper({ children }: WrapperProps) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <AntApp>{children}</AntApp>
-      </QueryClientProvider>
+      <GoogleOAuthProvider clientId="test-client-id">
+        <QueryClientProvider client={queryClient}>
+          <AntApp>{children}</AntApp>
+        </QueryClientProvider>
+      </GoogleOAuthProvider>
     );
   };
 }
@@ -49,9 +52,11 @@ export function createWrapper() {
 export function createWrapperWithClient(queryClient: QueryClient) {
   return function Wrapper({ children }: WrapperProps) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <AntApp>{children}</AntApp>
-      </QueryClientProvider>
+      <GoogleOAuthProvider clientId="test-client-id">
+        <QueryClientProvider client={queryClient}>
+          <AntApp>{children}</AntApp>
+        </QueryClientProvider>
+      </GoogleOAuthProvider>
     );
   };
 }
