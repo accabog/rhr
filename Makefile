@@ -77,7 +77,7 @@ dev: dev-services
 	@echo "Starting backend and frontend..."
 	@echo "Press Ctrl+C to stop all services"
 	@echo ""
-	@(cd backend && exec python manage.py runserver 0.0.0.0:8000) & BE_PID=$$!; \
+	@(cd backend && exec uv run python manage.py runserver 0.0.0.0:8000) & BE_PID=$$!; \
 	(cd frontend && exec npm run dev -- --host 0.0.0.0) & FE_PID=$$!; \
 	trap "kill $$BE_PID $$FE_PID 2>/dev/null; $(DOCKER_COMPOSE) down; exit 0" INT TERM; \
 	wait
@@ -94,7 +94,7 @@ dev-services:
 	@echo "  Redis:      localhost:6379"
 
 run-be:
-	cd backend && python manage.py runserver 0.0.0.0:8000
+	cd backend && uv run python manage.py runserver 0.0.0.0:8000
 
 run-fe:
 	cd frontend && npm run dev -- --host 0.0.0.0
@@ -128,7 +128,7 @@ seed:
 	$(DOCKER_COMPOSE) exec backend python manage.py seed_staging_data
 
 seed-e2e:
-	cd backend && python manage.py seed_e2e_data
+	cd backend && uv run python manage.py seed_e2e_data
 
 # ============================================================
 # Testing
