@@ -1,15 +1,19 @@
 {
   "mcpServers": {
     "github": {
-      "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GH_TOKEN}"
+      }
     },
     "postgres": {
       "type": "stdio",
       "command": "npx",
       "args": ["-y", "@bytebase/dbhub"],
       "env": {
-        "DATABASE_URL": "${DATABASE_URL}"
+        "DSN": "${DATABASE_URL}"
       }
     },
     "filesystem": {
@@ -41,15 +45,6 @@
       "type": "stdio",
       "command": "uvx",
       "args": ["mcp-server-time"]
-    },
-    "aws": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["awslabs.mcp-servers-specification@latest"],
-      "disabled": true,
-      "env": {
-        "AWS_PROFILE": "${AWS_PROFILE}"
-      }
     },
     "context7": {
       "type": "stdio",

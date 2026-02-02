@@ -195,7 +195,6 @@ This project includes pre-configured MCP (Model Context Protocol) servers that p
 | **memory** | Persistent knowledge across sessions | "Remember this project uses DRF", "What do you know about this codebase?" |
 | **fetch** | HTTP requests, API testing | "Fetch the API health endpoint", "Test the login API" |
 | **time** | Timezone conversions, date calculations | "What time is it in Berlin?", "Convert 3pm EST to UTC" |
-| **aws** | AWS resource management (disabled) | Enable in `.mcp.json` when needed |
 | **context7** | Up-to-date library documentation | "Get React 19 docs", "Show Django 5.0 migration guide" |
 | **sequential-thinking** | Structured problem-solving | "Think through this auth flow step by step" |
 

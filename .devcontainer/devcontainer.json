@@ -99,14 +99,14 @@
 
   // Start services and install dependencies
   "initializeCommand": "docker compose up -d db redis",
-  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci && npm install -g typescript prettier npm-check-updates @anthropic-ai/claude-code && bash /workspace/.devcontainer/mcp-setup.sh",
-  "postStartCommand": "echo '🚀 Dev container ready! Services running on host.'",
+  "postCreateCommand": "pip install uv && cd /workspace/backend && uv sync && cd /workspace/frontend && npm ci && npm install -g typescript prettier npm-check-updates @anthropic-ai/claude-code && bash /workspace/.devcontainer/mcp-setup.sh && echo 'export GH_TOKEN=$(gh auth token 2>/dev/null)' >> ~/.bashrc",
+  "postStartCommand": "echo '🚀 Dev container ready! Run: export GH_TOKEN=$(gh auth token)'",
 
   // Environment variables
   "containerEnv": {
     "DJANGO_SETTINGS_MODULE": "config.settings.local",
-    "DATABASE_URL": "postgres://rhr:rhr_dev_password@host.docker.internal:5432/rhr",
-    "REDIS_URL": "redis://host.docker.internal:6379/0",
+    "DATABASE_URL": "postgres://rhr:rhr_dev_password@rhr-db-1:5432/rhr",
+    "REDIS_URL": "redis://rhr-redis-1:6379/0",
     "DEBUG": "true",
     "PYTHONPATH": "/workspace/backend"
   },
@@ -118,6 +118,6 @@
 
   "remoteUser": "vscode",
 
-  // Make host.docker.internal resolve to the host gateway
-  "runArgs": ["--add-host=host.docker.internal:host-gateway"]
+  // Connect to the same network as db/redis containers
+  "runArgs": ["--network=rhr_default"]
 }
