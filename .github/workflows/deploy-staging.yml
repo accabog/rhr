@@ -74,6 +74,9 @@ jobs:
             # Restart services with zero downtime
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
+            # Force restart nginx to pick up config changes (bind mount doesn't trigger restart)
+            docker compose -f docker-compose.prod.yml restart nginx
+
             # Wait for services to be healthy
             sleep 30
 
