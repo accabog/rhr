@@ -79,11 +79,11 @@ jobs:
 
       - name: Run linting
         working-directory: ./backend
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Run type checking
         working-directory: ./backend
-        run: mypy apps --ignore-missing-imports
+        run: uv run mypy apps --ignore-missing-imports
 
       - name: Check for missing migrations
         working-directory: ./backend
@@ -92,7 +92,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci
         run: |
-          python manage.py makemigrations --check --dry-run
+          uv run python manage.py makemigrations --check --dry-run
           if [ $? -ne 0 ]; then
             echo "::error::Model changes detected without migrations. Run 'python manage.py makemigrations'"
             exit 1
@@ -105,7 +105,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci
-        run: pytest --cov=apps --cov-report=xml --cov-fail-under=70
+        run: uv run pytest --cov=apps --cov-report=xml --cov-fail-under=70
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -264,7 +264,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci
-        run: python manage.py migrate
+        run: uv run python manage.py migrate
 
       - name: Seed E2E test data
         working-directory: ./backend
@@ -273,7 +273,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci
-        run: python manage.py seed_e2e_data
+        run: uv run python manage.py seed_e2e_data
 
       - name: Start backend server
         working-directory: ./backend
@@ -283,7 +283,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci
         run: |
-          python manage.py runserver 0.0.0.0:8000 &
+          uv run python manage.py runserver 0.0.0.0:8000 &
           echo "Waiting for backend to be ready..."
           for i in {1..30}; do
             if curl -s http://localhost:8000/api/v1/health/ > /dev/null 2>&1; then
