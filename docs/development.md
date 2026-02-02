@@ -232,6 +232,22 @@ npm ci
 npm run dev
 ```
 
+### Frontend npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Run ESLint with auto-fix |
+| `npm run typecheck` | Run TypeScript type checking |
+| `npm test` | Run unit tests (Vitest) |
+| `npm run test:coverage` | Run tests with coverage |
+| `npm run test:e2e` | Run E2E tests (Playwright) |
+| `npm run test:e2e:ui` | Run E2E tests with UI |
+| `npm run test:e2e:debug` | Run E2E tests in debug mode |
+| `npm run test:e2e:update-snapshots` | Update visual regression baselines |
+
 ### IDE Setup
 
 **VS Code Extensions:**
@@ -336,7 +352,7 @@ VITE_API_URL=http://localhost:8000/api/v1
 
 ### Docker Compose Not Found
 
-If you see "docker-compose not found", use `docker compose` (v2 syntax) instead. The Makefile handles this automatically.
+All documentation uses `docker compose` (v2 syntax). The Makefile also uses v2 syntax.
 
 ### Port Already in Use
 
@@ -530,6 +546,76 @@ python manage.py sync_holidays --tenant=acme --country=DE --year=2025
 In local development, media files are served by Django's development server. In production, media files should be served by Nginx or a CDN.
 
 ## Claude Code Integration
+
+### MCP Servers
+
+MCP (Model Context Protocol) servers extend Claude Code with additional capabilities. This project includes pre-configured servers that are automatically set up in the Dev Container.
+
+#### Available Servers
+
+| Server | Runner | Purpose | Example Prompts |
+|--------|--------|---------|-----------------|
+| **github** | http | PR reviews, issue management | "Review PR #123", "List open issues" |
+| **postgres** | npx | Natural language DB queries | "What's the schema?", "Show recent employees" |
+| **filesystem** | npx | Enhanced file browsing | Browse project directories with context |
+| **redis** | uvx | Cache inspection, key management | "What keys are in Redis?", "Show cached sessions" |
+| **playwright** | npx | Browser automation, E2E debugging | "Open login page", "Take a screenshot" |
+| **memory** | npx | Persistent knowledge across sessions | "Remember this uses DRF", "What do you know?" |
+| **fetch** | docker | HTTP requests, API testing | "Fetch the health endpoint", "Test login API" |
+| **time** | uvx | Timezone conversions, date calculations | "What time in Berlin?", "Convert 3pm EST to UTC" |
+| **aws** | uvx | AWS resource management | Disabled by default - enable when needed |
+| **context7** | npx | Up-to-date library documentation | "Get React 19 docs", "Show Django 5.0 guide" |
+| **sequential-thinking** | npx | Structured problem-solving | "Think through auth flow step by step" |
+
+#### Verification
+
+After the Dev Container starts, verify MCP servers:
+```bash
+claude /mcp
+```
+
+You should see all configured servers listed (aws will show as disabled).
+
+#### How It Works
+
+1. `.mcp.json` defines the server configurations
+2. `.devcontainer/mcp-setup.sh` pre-installs dependencies during container creation
+3. Claude Code automatically loads the configuration when started
+
+#### Server Details
+
+**Core Infrastructure:**
+- `github` - Uses GitHub's hosted MCP endpoint (OAuth on first use)
+- `postgres` - Uses `@bytebase/dbhub` for natural language SQL queries
+- `redis` - Uses `redis-mcp-server` to inspect cache state
+
+**Development & Testing:**
+- `playwright` - Browser automation for E2E test debugging and visual inspection
+- `fetch` - Runs in isolated Docker container for safe HTTP requests
+- `filesystem` - Enhanced navigation within `/workspace`
+
+**Utilities:**
+- `memory` - Store and recall context across Claude Code sessions
+- `time` - Timezone conversions and date calculations
+- `aws` - AWS resource management (disabled by default for security)
+- `context7` - Fetches up-to-date documentation for libraries and frameworks
+- `sequential-thinking` - Enables structured, step-by-step problem-solving and reasoning
+
+#### Enabling AWS Server
+
+The AWS server is disabled by default. To enable it:
+
+1. Ensure AWS credentials are configured (`~/.aws/credentials` or environment variables)
+2. Edit `.mcp.json` and set `"disabled": false` for the aws server
+3. Set `AWS_PROFILE` environment variable if using named profiles
+4. Restart Claude Code
+
+#### Personal Overrides
+
+To add your own MCP servers without modifying the shared config:
+1. Create `.mcp.json.local` in the project root
+2. Add your custom configurations (same format as `.mcp.json`)
+3. This file is gitignored
 
 ### Custom Skills
 

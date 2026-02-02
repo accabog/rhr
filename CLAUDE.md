@@ -1,120 +1,172 @@
-# Raptor HR (RHR) - Claude Code Instructions
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-Multi-tenant HR platform with React frontend and Django REST Framework backend.
 
-> **Full development setup guide**: See [docs/development.md](docs/development.md) for detailed environment setup, Dev Container usage, and troubleshooting.
+Raptor HR (RHR) is a multi-tenant HR platform with a React frontend and Django REST Framework backend. Multi-tenancy uses a shared database with `tenant_id` foreign keys on all tenant-scoped models.
 
-## Quick Reference
+## Common Commands
 
-### Build Commands
+### Development (Dev Container - Recommended)
 ```bash
-# Backend (using uv - recommended)
-cd backend && uv sync
-cd backend && python manage.py migrate
-cd backend && python manage.py runserver
-
-# Backend (using pip - alternative)
-cd backend && pip install -e ".[dev]"
-
-# Frontend
-cd frontend && npm install
-cd frontend && npm run dev
-
-# Docker (full stack)
-docker-compose up -d
+make dev              # Start db/redis + backend/frontend (Ctrl+C stops all)
+make dev-services     # Start only PostgreSQL and Redis
 ```
 
-### Test Commands
+### Development (Docker)
 ```bash
-# Backend
+make up               # Start all services in Docker
+make down             # Stop all services
+```
+
+### Running Tests
+```bash
+# Backend - all tests
 cd backend && pytest
+
+# Backend - single test file
+cd backend && pytest apps/employees/tests/test_views.py
+
+# Backend - single test function
+cd backend && pytest apps/employees/tests/test_views.py::TestEmployeeAPI::test_list_employees -v
+
+# Backend - tests matching pattern
+cd backend && pytest -k "employee" -v
+
+# Backend - with coverage
 cd backend && pytest --cov=apps
 
-# Frontend
+# Frontend - all tests
 cd frontend && npm test
-cd frontend && npm run test:coverage
 
-# Linting
+# Frontend - single test file
+cd frontend && npm test -- src/features/employees/EmployeeList.test.tsx
+
+# E2E tests
+cd frontend && npx playwright test
+cd frontend && npx playwright test e2e/auth.spec.ts  # single file
+```
+
+### Linting
+```bash
 cd backend && ruff check .
+cd backend && ruff format .
 cd frontend && npm run lint
 ```
 
-### Key URLs
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000/api/v1/
-- API Docs: http://localhost:8000/api/docs/
-- Admin: http://localhost:8000/admin/
-
-## Project Structure
-
-```
-rhr/
-├── backend/              # Django REST Framework
-│   ├── config/           # Django settings and URLs
-│   │   └── settings/     # Split settings (base/local/production)
-│   └── apps/             # Django applications
-│       ├── core/         # Base models, permissions
-│       ├── tenants/      # Multi-tenancy
-│       ├── users/        # Authentication
-│       ├── employees/    # Employee management
-│       ├── timetracking/ # Time entries
-│       ├── timesheets/   # Period summaries
-│       ├── leave/        # PTO management
-│       └── contracts/    # Employment contracts
-├── frontend/             # React + TypeScript
-│   └── src/
-│       ├── api/          # API client and hooks
-│       ├── components/   # Shared UI components (DocumentList, etc.)
-│       ├── data/         # Static data (countries, timezones)
-│       ├── features/     # Feature modules
-│       │   ├── calendar/ # Leave/holiday calendar
-│       │   ├── profile/  # User profile management
-│       │   ├── settings/ # App and tenant settings
-│       │   └── ...
-│       ├── hooks/        # Custom hooks (useTimezone, etc.)
-│       ├── layouts/      # App layouts
-│       ├── stores/       # Zustand state
-│       ├── types/        # TypeScript types
-│       └── utils/        # Utility functions
-└── nginx/                # Reverse proxy config
+### Database
+```bash
+cd backend && python manage.py migrate
+cd backend && python manage.py makemigrations <app_name>
+cd backend && python manage.py shell_plus
+make db-shell         # PostgreSQL shell
 ```
 
-## Architecture Decisions
+## Architecture
 
-### Multi-Tenancy
-- Shared database with `tenant_id` foreign key on all tenant-scoped models
-- `TenantAwareModel` base class in `apps/core/models.py`
-- `TenantMiddleware` resolves tenant from X-Tenant-ID header or subdomain
+### Multi-Tenancy Pattern
+- `TenantAwareModel` (backend/apps/core/models.py): Base class for all tenant-scoped models
+- `TenantAwareViewSet` (backend/apps/core/views.py): Base class for all tenant-scoped API endpoints
+- `TenantMiddleware`: Resolves tenant from `X-Tenant-ID` header or subdomain
+- All queries are automatically filtered by tenant
 
-### Authentication
-- JWT tokens via SimpleJWT (15min access, 7d refresh)
-- Token refresh with rotation and blacklisting
-- Custom User model with email-based login
+### Backend Structure (Django)
+```
+backend/
+├── config/settings/          # base.py, local.py, production.py
+├── apps/
+│   ├── core/                 # TenantAwareModel, TenantAwareViewSet, permissions
+│   ├── tenants/              # Tenant model and management
+│   ├── users/                # Custom User model (email-based auth)
+│   ├── employees/            # Employee profiles, departments, positions
+│   ├── leave/                # LeaveType, LeaveRequest, LeaveBalance, Holiday
+│   ├── timetracking/         # TimeEntry, TimeEntryType
+│   ├── timesheets/           # Timesheet (period summaries with approval)
+│   └── contracts/            # Contract, ContractType, ContractDocument
+```
 
-### API Design
-- RESTful with DRF ViewSets
-- Cursor-based pagination for large datasets
-- Tenant scoping via `TenantAwareViewSet` base class
+### Frontend Structure (React + TypeScript)
+```
+frontend/src/
+├── api/                      # API client functions
+├── features/                 # Feature modules (pages + components)
+│   ├── auth/                 # Login, register
+│   ├── dashboard/            # Main dashboard
+│   ├── employees/            # Employee management
+│   ├── organization/         # Departments and positions
+│   ├── leave/                # Leave requests
+│   ├── calendar/             # Leave/holiday calendar
+│   ├── timetracking/         # Time entries
+│   ├── timesheets/           # Timesheet management
+│   ├── contracts/            # Employment contracts
+│   ├── profile/              # User profile
+│   └── settings/             # App settings
+├── components/               # Shared UI components
+├── hooks/                    # Custom React hooks
+├── stores/                   # Zustand stores (auth, UI state)
+├── types/                    # TypeScript interfaces
+└── utils/                    # Utility functions
+```
 
-### Frontend State
-- TanStack Query for server state (API data)
-- Zustand for client state (auth, UI)
-- React Hook Form + Zod for form validation
+### State Management
+- **Server state**: TanStack Query with query keys like `['employees', 'list', filters]`
+- **Client state**: Zustand for auth and UI preferences
+- **Forms**: React Hook Form + Zod validation
 
 ## Code Patterns
 
 ### Adding a New API Endpoint (Backend)
-1. Create model in `apps/<app>/models.py` inheriting `TenantAwareModel`
+1. Create model inheriting `TenantAwareModel` in `apps/<app>/models.py`
 2. Create serializer in `apps/<app>/serializers.py`
-3. Create ViewSet in `apps/<app>/views.py` inheriting `TenantAwareViewSet`
+3. Create ViewSet inheriting `TenantAwareViewSet` in `apps/<app>/views.py`
 4. Register routes in `apps/<app>/urls.py`
+5. Create migration: `python manage.py makemigrations <app>`
 
-### Adding a New Feature (Frontend)
-1. Create feature folder in `src/features/<feature>/`
-2. Add API functions in `src/api/<feature>.ts`
-3. Create page components in the feature folder
-4. Add routes in `src/App.tsx`
+### Adding a Frontend Feature
+1. Create feature folder: `src/features/<feature>/`
+2. Add API functions: `src/api/<feature>.ts`
+3. Add TypeScript types: `src/types/<feature>.ts`
+4. Create TanStack Query hooks in the feature folder
+5. Add routes in `src/App.tsx`
+
+### Testing Fixtures (Backend)
+Use pytest fixtures from `conftest.py`:
+```python
+@pytest.mark.django_db
+def test_employee_list(authenticated_tenant_client, employee):
+    response = authenticated_tenant_client.get('/api/v1/employees/')
+    assert response.status_code == 200
+```
+
+Key fixtures: `tenant`, `user`, `authenticated_client`, `authenticated_tenant_client`, `employee`, `department`, `position`
+
+### Factory Pattern (Testing)
+```python
+from apps.employees.tests.factories import EmployeeFactory
+employee = EmployeeFactory(first_name="John", department=department)
+employees = EmployeeFactory.create_batch(5)
+```
+
+## API Conventions
+
+- Base pattern: `/api/v1/<resource>/` (list/create), `/api/v1/<resource>/<id>/` (detail)
+- Nested resources: `/api/v1/leave/requests/`, `/api/v1/leave/types/`, `/api/v1/contracts/types/`
+- Headers: `Authorization: Bearer <token>`, `X-Tenant-ID: <uuid>`
+- Pagination: Cursor-based with `count`, `next`, `previous`, `results`
+
+## Key Files Reference
+
+| Purpose | Location |
+|---------|----------|
+| Django settings | `backend/config/settings/{base,local,production}.py` |
+| URL routing | `backend/config/urls.py`, `backend/apps/*/urls.py` |
+| Base models | `backend/apps/core/models.py` |
+| Base views | `backend/apps/core/views.py` |
+| Test fixtures | `backend/conftest.py`, `backend/apps/*/tests/factories.py` |
+| API client | `frontend/src/api/client.ts` |
+| Auth store | `frontend/src/stores/authStore.ts` |
+| Route definitions | `frontend/src/App.tsx` |
 
 ## Environment Variables
 
@@ -123,259 +175,52 @@ rhr/
 - `REDIS_URL` - Redis connection string
 - `SECRET_KEY` - Django secret key
 - `DEBUG` - Enable debug mode
-- `ALLOWED_HOSTS` - Comma-separated allowed hosts
 
 ### Frontend
-- `VITE_API_URL` - Backend API base URL
+- `VITE_API_URL` - Backend API base URL (default: http://localhost:8000/api/v1)
 
-## Testing Guidelines
-- Backend: Use pytest with factory_boy for fixtures
-- Frontend: Use Vitest with React Testing Library
-- E2E: Playwright for critical user flows
+## MCP Servers
 
-## Makefile Commands (Development Shortcuts)
+This project includes pre-configured MCP (Model Context Protocol) servers that provide Claude Code with enhanced capabilities. These are automatically set up when opening the project in a Dev Container.
 
+### Available Servers
+
+| Server | Purpose | Example Prompts |
+|--------|---------|-----------------|
+| **github** | PR reviews, issue management | "Review PR #123", "Create an issue for this bug" |
+| **postgres** | Natural language DB queries | "Show employees hired this month", "What tables exist?" |
+| **filesystem** | Enhanced file browsing | Browse `/workspace` directories with context |
+| **redis** | Cache inspection, key management | "What keys are in Redis?", "Show cached sessions" |
+| **playwright** | Browser automation, E2E debugging | "Open login page and take screenshot", "Click the submit button" |
+| **memory** | Persistent knowledge across sessions | "Remember this project uses DRF", "What do you know about this codebase?" |
+| **fetch** | HTTP requests, API testing | "Fetch the API health endpoint", "Test the login API" |
+| **time** | Timezone conversions, date calculations | "What time is it in Berlin?", "Convert 3pm EST to UTC" |
+| **aws** | AWS resource management (disabled) | Enable in `.mcp.json` when needed |
+| **context7** | Up-to-date library documentation | "Get React 19 docs", "Show Django 5.0 migration guide" |
+| **sequential-thinking** | Structured problem-solving | "Think through this auth flow step by step" |
+
+### Verification
+
+After opening the Dev Container, verify MCP servers are configured:
 ```bash
-make up          # Start all Docker services
-make down        # Stop all services
-make logs        # Follow service logs
-make migrate     # Run Django migrations
-make migrations  # Create new migrations
-make test        # Run all tests
-make test-be     # Run backend tests only
-make test-fe     # Run frontend tests only
-make lint        # Run all linters
-make shell       # Open Django shell
-make db-shell    # Open PostgreSQL shell
-make seed        # Seed development data
+claude /mcp
 ```
 
-## Database Schema Overview
+### Personal Overrides
 
-### Core Tables
-| Table | Description | Key Fields |
-|-------|-------------|------------|
-| `tenants_tenant` | Organizations/companies | `name`, `subdomain`, `settings` |
-| `users_user` | All users (employees, admins) | `email`, `tenant_id`, `role` |
-| `employees_employee` | Employee profiles | `user_id`, `hire_date`, `department` |
+To add personal MCP server configurations without affecting the shared config:
+1. Create `.mcp.json.local` in the project root
+2. Add your custom server configurations
+3. This file is gitignored and won't be committed
 
-### HR Domain Tables
-| Table | Description | Relationships |
-|-------|-------------|---------------|
-| `contracts_contract` | Employment contracts | FK to `employee` |
-| `leave_leaverequest` | PTO/leave requests | FK to `employee`, `leave_type` |
-| `leave_leavetype` | Leave categories (vacation, sick) | FK to `tenant` |
-| `timetracking_timeentry` | Clock in/out records | FK to `employee` |
-| `timesheets_timesheet` | Period summaries | FK to `employee` |
+## Commit Message Format
 
-### Tenant Isolation Pattern
-All tenant-scoped tables have a `tenant_id` foreign key. Queries are automatically filtered by `TenantAwareViewSet`.
+Use conventional commits: `type(scope): description`
 
-## API Conventions
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-### Endpoint Patterns
+Examples:
 ```
-GET    /api/v1/<resource>/          # List (paginated)
-POST   /api/v1/<resource>/          # Create
-GET    /api/v1/<resource>/<id>/     # Retrieve
-PUT    /api/v1/<resource>/<id>/     # Update (full)
-PATCH  /api/v1/<resource>/<id>/     # Update (partial)
-DELETE /api/v1/<resource>/<id>/     # Delete
+feat(employees): add bulk import functionality
+fix(auth): resolve token refresh race condition
 ```
-
-### Headers
-- `Authorization: Bearer <token>` - JWT access token
-- `X-Tenant-ID: <uuid>` - Tenant identifier (required for multi-tenant endpoints)
-
-### Pagination Response Format
-```json
-{
-  "count": 100,
-  "next": "http://api/v1/resource/?cursor=abc",
-  "previous": null,
-  "results": [...]
-}
-```
-
-## Debugging Commands
-
-```bash
-# Check migration status
-cd backend && python manage.py showmigrations
-
-# Django shell with models loaded
-cd backend && python manage.py shell_plus
-
-# View SQL for a queryset
-print(queryset.query)
-
-# Check for missing migrations
-cd backend && python manage.py makemigrations --check
-
-# Reset local database (development only)
-docker-compose down -v && docker-compose up -d
-```
-
-## Claude Code Skills
-
-Custom skills are available for common tasks:
-- `/migrate` - Generate and run Django migrations
-- `/add-api` - Scaffold a new API endpoint with tests
-- `/add-feature` - Create a new frontend feature module
-
-## Factory Patterns (Testing)
-
-Backend tests use factory_boy. Factories are in `apps/<app>/tests/factories.py`:
-
-```python
-from apps.employees.tests.factories import EmployeeFactory
-from apps.tenants.tests.factories import TenantFactory
-
-# Create with defaults
-employee = EmployeeFactory()
-
-# Create with specific values
-employee = EmployeeFactory(
-    first_name="John",
-    department="Engineering"
-)
-
-# Create batch
-employees = EmployeeFactory.create_batch(5)
-```
-
-## Base Classes Reference
-
-### TenantAwareModel
-**Location**: `backend/apps/core/models.py`
-**Use for**: ALL tenant-scoped data models
-**Provides**: `tenant` FK (CASCADE), `created_at`, `updated_at`
-
-```python
-from apps.core.models import TenantAwareModel
-
-class MyModel(TenantAwareModel):
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        ordering = ['name']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['tenant', 'name'],
-                name='unique_mymodel_name_per_tenant'
-            )
-        ]
-```
-
-### TenantAwareViewSet
-**Location**: `backend/apps/core/views.py`
-**Use for**: ALL tenant-scoped API endpoints
-**Provides**: Auto-filters queryset by `request.tenant`, sets tenant on create
-
-```python
-from apps.core.views import TenantAwareViewSet
-
-class MyModelViewSet(TenantAwareViewSet):
-    queryset = MyModel.objects.all()
-    serializer_class = MyModelSerializer
-```
-
-### TenantAwareManager
-**Provides**: `.for_tenant(tenant)` queryset method
-
-```python
-# Usage in code
-MyModel.objects.for_tenant(request.tenant).filter(active=True)
-```
-
-## Frontend Query Keys
-
-**Pattern**: `['resource', 'scope', ...params]`
-
-| Query Key | Description |
-|-----------|-------------|
-| `['employees', 'list', filters]` | Employee list with filters |
-| `['employees', 'detail', id]` | Single employee |
-| `['employees', 'me']` | Current user's employee |
-| `['leave', 'requests', employeeId]` | Leave requests for employee |
-| `['leave', 'types']` | All leave types |
-| `['departments', 'tree']` | Department hierarchy |
-
-**Invalidation**:
-```typescript
-// Invalidate all employee queries
-queryClient.invalidateQueries({ queryKey: ['employees'] });
-
-// Invalidate specific employee
-queryClient.invalidateQueries({ queryKey: ['employees', 'detail', id] });
-```
-
-## Error Responses
-
-| Status | When | Frontend Action |
-|--------|------|-----------------|
-| 400 | Validation failed | Show field-level errors from response |
-| 401 | Token expired | Trigger token refresh, retry request |
-| 403 | No permission | Show "Access Denied" message |
-| 404 | Not found / wrong tenant | Navigate away, show "Not Found" |
-| 500 | Server error | Show generic error, log to console |
-
-## Test Fixtures (conftest.py)
-
-### Core Fixtures
-| Fixture | Creates | Dependencies |
-|---------|---------|--------------|
-| `tenant` | Tenant instance | None |
-| `user` | User with password | None |
-| `authenticated_client` | APIClient with token | user |
-| `authenticated_tenant_client` | APIClient + X-Tenant-ID | user, tenant |
-
-### Domain Fixtures
-| Fixture | Creates | Dependencies |
-|---------|---------|--------------|
-| `department` | Department | tenant |
-| `position` | Position | tenant |
-| `employee` | Employee | tenant, department, position |
-| `employee_with_user` | Employee + linked User | user, tenant, department, position |
-| `leave_type` | LeaveType | tenant |
-| `leave_request` | LeaveRequest | employee, leave_type |
-
-### Usage Example
-```python
-@pytest.mark.django_db
-def test_employee_list(authenticated_tenant_client, employee):
-    response = authenticated_tenant_client.get('/api/v1/employees/')
-    assert response.status_code == 200
-    assert len(response.data['results']) == 1
-```
-
-## Checklists
-
-### Adding a New Model
-- [ ] Inherit from `TenantAwareModel`
-- [ ] Add unique constraint per tenant if needed
-- [ ] Define indexes for frequently filtered columns
-- [ ] Add `__str__` method
-- [ ] Add to `admin.py`
-- [ ] Create and run migration
-- [ ] Add fixture to `conftest.py`
-- [ ] Write model tests
-
-### Adding an API Endpoint
-- [ ] Create serializer (consider List vs Detail versions)
-- [ ] Create ViewSet inheriting `TenantAwareViewSet`
-- [ ] Register in `urls.py` router
-- [ ] Add permission classes if needed
-- [ ] Add tests for CRUD operations
-- [ ] Add tests for tenant isolation
-- [ ] Update API documentation
-
-### Adding a Frontend Feature
-- [ ] Create `src/features/<feature>/` folder
-- [ ] Add TypeScript interfaces in `src/types/`
-- [ ] Add API functions in `src/api/<feature>.ts`
-- [ ] Create TanStack Query hooks
-- [ ] Create page components
-- [ ] Add routes in `src/App.tsx`
-- [ ] Add to navigation if needed
-- [ ] Write component tests
