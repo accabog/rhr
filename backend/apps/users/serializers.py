@@ -2,8 +2,11 @@
 User serializers for authentication and user management.
 """
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -155,3 +158,43 @@ class UserInviteSerializer(serializers.Serializer):
         choices=TenantMembership.ROLE_CHOICES,
         default="employee",
     )
+
+
+class GoogleOAuthSerializer(serializers.Serializer):
+    """Serializer for Google OAuth token validation."""
+
+    credential = serializers.CharField(
+        required=True,
+        help_text="Google ID token from OAuth flow",
+    )
+
+    def validate_credential(self, value):
+        """Verify the Google ID token and extract user info."""
+        client_id = settings.GOOGLE_OAUTH2_CLIENT_ID
+        if not client_id:
+            raise serializers.ValidationError("Google OAuth is not configured")
+
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                value,
+                google_requests.Request(),
+                client_id,
+            )
+
+            # Verify the issuer
+            if idinfo["iss"] not in ["accounts.google.com", "https://accounts.google.com"]:
+                raise serializers.ValidationError("Invalid token issuer")
+
+            # Store the validated info for use in the view
+            self.validated_google_info = {
+                "email": idinfo["email"],
+                "email_verified": idinfo.get("email_verified", False),
+                "name": idinfo.get("name", ""),
+                "given_name": idinfo.get("given_name", ""),
+                "family_name": idinfo.get("family_name", ""),
+                "picture": idinfo.get("picture", ""),
+            }
+
+            return value
+        except ValueError as e:
+            raise serializers.ValidationError(f"Invalid Google token: {e}") from e

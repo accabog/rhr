@@ -10,9 +10,12 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from apps.tenants.serializers import TenantMembershipSerializer
+
 from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
+    GoogleOAuthSerializer,
     UserRegistrationSerializer,
     UserSerializer,
 )
@@ -130,5 +133,67 @@ class ChangePasswordView(APIView):
 
         return Response(
             {"detail": "Password changed successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class GoogleOAuthLoginView(APIView):
+    """
+    Google OAuth login for existing users.
+
+    POST /api/v1/auth/google/
+
+    Authenticates users via Google OAuth. Matches the Google account email
+    to an existing user account and issues JWT tokens.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = GoogleOAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        google_info = serializer.validated_google_info
+
+        # Require verified email
+        if not google_info.get("email_verified"):
+            return Response(
+                {"detail": "Google email is not verified"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Look up user by email (case-insensitive)
+        email = google_info["email"].lower()
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    "detail": "No account found with this email address",
+                    "code": "user_not_found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if user is active
+        if not user.is_active:
+            return Response(
+                {"detail": "This account is inactive"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        # Get user's tenants
+        memberships = user.tenant_memberships.select_related("tenant").all()
+
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": UserSerializer(user).data,
+                "tenants": TenantMembershipSerializer(memberships, many=True).data,
+            },
             status=status.HTTP_200_OK,
         )

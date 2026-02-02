@@ -4,15 +4,19 @@ import { Form, Input, Button, Card, Typography, App, Divider } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/api/auth';
+import GoogleLoginButton from './components/GoogleLoginButton';
 import type { LoginCredentials } from '@/types';
 
 const { Title, Text } = Typography;
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const { message } = App.useApp();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  const isLoading = loading || googleLoading;
 
   const handleSubmit = async (values: LoginCredentials) => {
     setLoading(true);
@@ -53,6 +57,15 @@ export default function LoginPage() {
           <Text type="secondary">Sign in to your account</Text>
         </div>
 
+        <GoogleLoginButton
+          disabled={isLoading}
+          onLoadingChange={setGoogleLoading}
+        />
+
+        <Divider plain>
+          <Text type="secondary">or sign in with email</Text>
+        </Divider>
+
         <Form
           name="login"
           onFinish={handleSubmit}
@@ -67,26 +80,22 @@ export default function LoginPage() {
               { type: 'email', message: 'Please enter a valid email' },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email address" />
+            <Input prefix={<MailOutlined />} placeholder="Email address" disabled={isLoading} />
           </Form.Item>
 
           <Form.Item
             name="password"
             rules={[{ required: true, message: 'Please enter your password' }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+            <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={isLoading} />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
+            <Button type="primary" htmlType="submit" loading={loading} disabled={googleLoading} block>
               Sign In
             </Button>
           </Form.Item>
         </Form>
-
-        <Divider plain>
-          <Text type="secondary">or</Text>
-        </Divider>
 
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
