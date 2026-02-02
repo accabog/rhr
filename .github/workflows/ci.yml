@@ -370,6 +370,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.target }}
           cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+          build-args: |
+            ${{ matrix.target == 'frontend' && format('VITE_GOOGLE_CLIENT_ID={0}', vars.VITE_GOOGLE_CLIENT_ID) || '' }}
 
       - name: Get short SHA for SBOM
         if: github.event_name != 'pull_request'
