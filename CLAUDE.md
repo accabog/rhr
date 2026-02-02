@@ -67,16 +67,16 @@ make db-shell         # PostgreSQL shell
 
 ### Multi-Tenancy Pattern
 - `TenantAwareModel` (backend/apps/core/models.py): Base class for all tenant-scoped models
-- `TenantAwareViewSet` (backend/apps/core/views.py): Base class for all tenant-scoped API endpoints
+- `TenantAwareViewSet` (backend/apps/employees/views.py): Base ViewSet that filters by tenant and sets tenant on create
 - `TenantMiddleware`: Resolves tenant from `X-Tenant-ID` header or subdomain
-- All queries are automatically filtered by tenant
+- All queries are automatically filtered by tenant using `for_tenant()` manager method
 
 ### Backend Structure (Django)
 ```
 backend/
 ├── config/settings/          # base.py, local.py, production.py
 ├── apps/
-│   ├── core/                 # TenantAwareModel, TenantAwareViewSet, permissions
+│   ├── core/                 # TenantAwareModel, permissions, Document model
 │   ├── tenants/              # Tenant model and management
 │   ├── users/                # Custom User model (email-based auth)
 │   ├── employees/            # Employee profiles, departments, positions
@@ -141,12 +141,15 @@ def test_employee_list(authenticated_tenant_client, employee):
 
 Key fixtures: `tenant`, `user`, `authenticated_client`, `authenticated_tenant_client`, `employee`, `department`, `position`
 
-### Factory Pattern (Testing)
-```python
-from apps.employees.tests.factories import EmployeeFactory
-employee = EmployeeFactory(first_name="John", department=department)
-employees = EmployeeFactory.create_batch(5)
-```
+### Additional Fixtures (Testing)
+Additional fixtures available in `conftest.py`:
+- Time tracking: `time_entry_type`, `overtime_entry_type`, `time_entry`, `active_time_entry`
+- Leave: `leave_type`, `sick_leave_type`, `leave_balance`, `leave_request`
+- Timesheets: `timesheet`, `submitted_timesheet`
+- Contracts: `contract_type`, `contract`, `active_contract`, `expiring_contract`
+- Organization: `department`, `department2`, `child_department`, `position`, `manager_position`
+- Employees: `employee`, `employee_with_user`, `manager_employee`, `employee2` (for isolation tests)
+- Tenants: `tenant`, `tenant2`, `tenant_membership`, `tenant_membership_admin`, `tenant_settings`
 
 ## API Conventions
 
@@ -162,8 +165,8 @@ employees = EmployeeFactory.create_batch(5)
 | Django settings | `backend/config/settings/{base,local,production}.py` |
 | URL routing | `backend/config/urls.py`, `backend/apps/*/urls.py` |
 | Base models | `backend/apps/core/models.py` |
-| Base views | `backend/apps/core/views.py` |
-| Test fixtures | `backend/conftest.py`, `backend/apps/*/tests/factories.py` |
+| Base views | `backend/apps/employees/views.py` (TenantAwareViewSet) |
+| Test fixtures | `backend/conftest.py` |
 | API client | `frontend/src/api/client.ts` |
 | Auth store | `frontend/src/stores/authStore.ts` |
 | Route definitions | `frontend/src/App.tsx` |
