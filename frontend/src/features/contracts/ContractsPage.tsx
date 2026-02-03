@@ -283,7 +283,7 @@ export default function ContractsPage() {
           <Col span={24}>
             <Alert
               type="warning"
-              message={`${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring within 30 days`}
+              title={`${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring within 30 days`}
               description={
                 <ul style={{ margin: '8px 0 0', paddingLeft: 20 }}>
                   {expiring.slice(0, 3).map((c) => (

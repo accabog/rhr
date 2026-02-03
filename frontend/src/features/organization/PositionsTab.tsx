@@ -208,8 +208,8 @@ export default function PositionsTab() {
               min={1}
               max={10}
               style={{ width: '100%' }}
-              addonAfter={
-                <span style={{ minWidth: 60, display: 'inline-block' }}>
+              suffix={
+                <span style={{ minWidth: 60, display: 'inline-block', color: '#888' }}>
                   {levelLabels[form.getFieldValue('level')] || ''}
                 </span>
               }

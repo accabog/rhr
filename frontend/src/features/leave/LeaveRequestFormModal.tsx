@@ -176,7 +176,7 @@ export default function LeaveRequestFormModal({
         {selectedBalance && (
           <Alert
             type="info"
-            message={
+            title={
               <Space>
                 <Text>
                   Available: <strong>{parseFloat(selectedBalance.remaining_days).toFixed(1)}</strong> days
@@ -237,7 +237,7 @@ export default function LeaveRequestFormModal({
                 ? 'warning'
                 : 'success'
             }
-            message={
+            title={
               <Space orientation="vertical" size={4} style={{ width: '100%' }}>
                 <Text>
                   Requesting: <strong>{leaveCalc.workingDays}</strong> working day

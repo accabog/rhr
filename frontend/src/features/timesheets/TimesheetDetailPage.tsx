@@ -93,7 +93,7 @@ export default function TimesheetDetailPage() {
     return (
       <Alert
         type="error"
-        message="Timesheet not found"
+        title="Timesheet not found"
         action={
           <Button onClick={() => navigate('/timesheets')}>Back to Timesheets</Button>
         }
@@ -345,7 +345,7 @@ export default function TimesheetDetailPage() {
                 <Divider />
                 <Alert
                   type="error"
-                  message="Rejection Reason"
+                  title="Rejection Reason"
                   description={timesheet.rejection_reason}
                 />
               </>
@@ -365,7 +365,7 @@ export default function TimesheetDetailPage() {
             {comments.length > 0 ? (
               <Timeline
                 items={comments.map((comment) => ({
-                  children: (
+                  content: (
                     <div>
                       <Text strong>{comment.author_name}</Text>
                       <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
@@ -376,7 +376,7 @@ export default function TimesheetDetailPage() {
                       </Paragraph>
                     </div>
                   ),
-                  dot: <UserOutlined />,
+                  icon: <UserOutlined />,
                 }))}
               />
             ) : (
