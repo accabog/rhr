@@ -114,7 +114,7 @@ export default function EmployeeFormModal({
       okText={isEditing ? 'Save Changes' : 'Add Employee'}
       confirmLoading={isLoading}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" requiredMark="optional">
         <Divider titlePlacement="left" plain>

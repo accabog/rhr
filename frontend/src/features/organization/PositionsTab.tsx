@@ -35,6 +35,7 @@ export default function PositionsTab() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPosition, setEditingPosition] = useState<Position | null>(null);
   const [form] = Form.useForm();
+  const level = Form.useWatch('level', form);
 
   const { data, isLoading } = usePositions();
   const { data: departmentsData } = useDepartments();
@@ -210,7 +211,7 @@ export default function PositionsTab() {
               style={{ width: '100%' }}
               suffix={
                 <span style={{ minWidth: 60, display: 'inline-block', color: '#888' }}>
-                  {levelLabels[form.getFieldValue('level')] || ''}
+                  {levelLabels[level] || ''}
                 </span>
               }
             />

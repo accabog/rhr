@@ -106,11 +106,11 @@ export default function EmployeeDetailDrawer({
           <Title level={5} style={{ marginTop: 24 }}>
             Personal Information
           </Title>
-          <Descriptions column={2} size="small" bordered>
+          <Descriptions column={1} size="small" bordered>
             <Descriptions.Item label="Date of Birth">
               {employee.date_of_birth || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="Address" span={2}>
+            <Descriptions.Item label="Address">
               {employee.address || '-'}
             </Descriptions.Item>
           </Descriptions>
@@ -165,7 +165,7 @@ export default function EmployeeDetailDrawer({
     <Drawer
       title={null}
       placement="right"
-      width={640}
+      styles={{ wrapper: { width: 640 } }}
       onClose={onClose}
       open={open}
       extra={
