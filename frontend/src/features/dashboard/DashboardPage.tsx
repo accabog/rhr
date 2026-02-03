@@ -1,4 +1,4 @@
-import { Card, Col, Row, Statistic, Typography, Spin, List, Empty } from 'antd';
+import { Card, Col, Row, Statistic, Typography, Spin, Empty, Space } from 'antd';
 import {
   TeamOutlined,
   ClockCircleOutlined,
@@ -148,20 +148,12 @@ export default function DashboardPage() {
           <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={12}>
               <Card title="Quick Actions">
-                <List
-                  size="small"
-                  dataSource={[
-                    { title: 'Add new employee', link: '/employees' },
-                    { title: 'Review leave requests', link: '/leave' },
-                    { title: 'View timesheets', link: '/timesheets' },
-                    { title: 'Manage departments', link: '/organization' },
-                  ]}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <a href={item.link}>{item.title}</a>
-                    </List.Item>
-                  )}
-                />
+                <Space orientation="vertical" style={{ width: '100%' }}>
+                  <div><a href="/employees">Add new employee</a></div>
+                  <div><a href="/leave">Review leave requests</a></div>
+                  <div><a href="/timesheets">View timesheets</a></div>
+                  <div><a href="/organization">Manage departments</a></div>
+                </Space>
               </Card>
             </Col>
             <Col xs={24} lg={12}>
