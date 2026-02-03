@@ -41,7 +41,7 @@ export default function ProfilePage() {
   const removeAvatar = useRemoveAvatar();
   const connectGoogle = useConnectGoogle();
   const disconnectGoogle = useDisconnectGoogle();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user?.avatar || null);
   const [disconnectModalVisible, setDisconnectModalVisible] = useState(false);
 
   const { data: employee, isLoading: employeeLoading } = useCurrentEmployee();
@@ -53,7 +53,6 @@ export default function ProfilePage() {
         first_name: user.first_name,
         last_name: user.last_name,
       });
-      setPreviewUrl(user.avatar || null);
     }
   }, [user, form]);
 

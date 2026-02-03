@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Dropdown, Avatar, Space, Typography, theme } from 'antd';
 import {
@@ -67,8 +67,7 @@ const menuItems = [
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [logoError, setLogoError] = useState(false);
-  const [iconError, setIconError] = useState(false);
+  const [failedImageUrls, setFailedImageUrls] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -77,14 +76,15 @@ export default function AppLayout() {
 
   const { user, currentTenant, refreshToken, logout } = useAuthStore();
 
-  // Reset error states when tenant logos change
-  useEffect(() => {
-    setLogoError(false);
-  }, [currentTenant?.logo]);
+  // Derive error states from the failed URLs set - automatically resets when URL changes
+  const logoError = currentTenant?.logo ? failedImageUrls.has(currentTenant.logo) : false;
+  const iconError = currentTenant?.logo_icon ? failedImageUrls.has(currentTenant.logo_icon) : false;
 
-  useEffect(() => {
-    setIconError(false);
-  }, [currentTenant?.logo_icon]);
+  const handleImageError = (url: string | undefined) => {
+    if (url) {
+      setFailedImageUrls(prev => new Set([...prev, url]));
+    }
+  };
 
   const handleLogout = async () => {
     if (refreshToken) {
@@ -151,7 +151,7 @@ export default function AppLayout() {
               <img
                 src={currentTenant.logo_icon}
                 alt={currentTenant.name}
-                onError={() => setIconError(true)}
+                onError={() => handleImageError(currentTenant?.logo_icon)}
                 style={{
                   height: 36,
                   width: 36,
@@ -163,7 +163,7 @@ export default function AppLayout() {
               <img
                 src={currentTenant.logo}
                 alt={currentTenant.name}
-                onError={() => setLogoError(true)}
+                onError={() => handleImageError(currentTenant?.logo)}
                 style={{
                   height: 32,
                   maxWidth: 48,
@@ -191,7 +191,7 @@ export default function AppLayout() {
               <img
                 src={currentTenant.logo}
                 alt={currentTenant.name}
-                onError={() => setLogoError(true)}
+                onError={() => handleImageError(currentTenant?.logo)}
                 style={{
                   height: 40,
                   maxWidth: 168,
