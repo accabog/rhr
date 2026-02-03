@@ -177,9 +177,9 @@ describe('LoginPage', () => {
       await user.type(screen.getByPlaceholderText('Password'), 'password123');
       await user.click(screen.getByRole('button', { name: /sign in/i }));
 
-      // Button should show loading state
-      const button = screen.getByRole('button', { name: /sign in/i });
-      expect(button).toHaveClass('ant-btn-loading');
+      // Inputs should be disabled while loading
+      expect(screen.getByPlaceholderText('Email address')).toBeDisabled();
+      expect(screen.getByPlaceholderText('Password')).toBeDisabled();
     });
   });
 

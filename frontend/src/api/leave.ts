@@ -118,14 +118,16 @@ export async function fetchLeaveTypes(): Promise<LeaveType[]> {
 export async function fetchMyBalances(year?: number): Promise<LeaveBalance[]> {
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
-  const response = await apiClient.get(`/leave/balances/my_balances/?${params}`);
+  const queryString = params.toString();
+  const response = await apiClient.get(`/leave/balances/my_balances/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 
 export async function fetchBalanceSummary(year?: number): Promise<LeaveBalanceSummary[]> {
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
-  const response = await apiClient.get(`/leave/balances/summary/?${params}`);
+  const queryString = params.toString();
+  const response = await apiClient.get(`/leave/balances/summary/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 
@@ -135,7 +137,8 @@ export async function fetchMyLeaveRequests(
 ): Promise<PaginatedResponse<LeaveRequest>> {
   const params = new URLSearchParams();
   if (status) params.append('status', status);
-  const response = await apiClient.get(`/leave/requests/my_requests/?${params}`);
+  const queryString = params.toString();
+  const response = await apiClient.get(`/leave/requests/my_requests/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 
@@ -194,7 +197,8 @@ export async function fetchHolidays(year?: number, country?: string): Promise<Ho
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
   if (country) params.append('country', country);
-  const response = await apiClient.get(`/leave/holidays/?${params}`);
+  const queryString = params.toString();
+  const response = await apiClient.get(`/leave/holidays/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 
@@ -218,7 +222,8 @@ export async function syncHolidays(country?: string, year?: number): Promise<Hol
   const params = new URLSearchParams();
   if (country) params.append('country', country);
   if (year) params.append('year', year.toString());
-  const response = await apiClient.post(`/leave/holidays/sync/?${params}`);
+  const queryString = params.toString();
+  const response = await apiClient.post(`/leave/holidays/sync/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 

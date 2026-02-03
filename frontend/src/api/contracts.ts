@@ -113,7 +113,8 @@ export async function fetchContracts(params?: {
   if (params?.employee) searchParams.append('employee', params.employee.toString());
   if (params?.expiring_soon) searchParams.append('expiring_soon', 'true');
 
-  const response = await apiClient.get(`/contracts/?${searchParams}`);
+  const queryString = searchParams.toString();
+  const response = await apiClient.get(`/contracts/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 
