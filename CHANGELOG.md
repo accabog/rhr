@@ -11,10 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nothing yet
 
 ### Changed
-- Nothing yet
+- Upgraded Ant Design from v5 to v6
+- Updated GitHub Actions: codecov-action v4→v5, codeql-action v3→v4, cache v4→v5, setup-uv v4→v7, github-script v7→v8
+- Updated Python dependencies: django, redis, gunicorn, cryptography, pillow, pytest, and others
+- Updated npm dependencies (23 packages)
 
 ### Fixed
-- Nothing yet
+- Fixed component props for antd v6 compatibility (Space direction→orientation, Progress trailColor→railColor, Statistic valueStyle→styles.content, Divider orientation→titlePlacement)
+- Fixed API URL construction to avoid trailing `?` when no query parameters
 
 ## [0.1.1] - 2024-01-30
 

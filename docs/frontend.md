@@ -502,7 +502,7 @@ The hook:
 
 ## UI Components
 
-Using Ant Design 5.x:
+Using Ant Design 6.x:
 
 ```typescript
 import { Table, Button, Space, message } from 'antd';
