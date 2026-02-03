@@ -117,7 +117,7 @@ export default function EmployeeFormModal({
       destroyOnClose
     >
       <Form form={form} layout="vertical" requiredMark="optional">
-        <Divider orientation="left" plain>
+        <Divider titlePlacement="left" plain>
           Basic Information
         </Divider>
 
@@ -171,7 +171,7 @@ export default function EmployeeFormModal({
           </Col>
         </Row>
 
-        <Divider orientation="left" plain>
+        <Divider titlePlacement="left" plain>
           Employment Details
         </Divider>
 
@@ -253,7 +253,7 @@ export default function EmployeeFormModal({
           </Col>
         </Row>
 
-        <Divider orientation="left" plain>
+        <Divider titlePlacement="left" plain>
           Additional Information
         </Divider>
 
