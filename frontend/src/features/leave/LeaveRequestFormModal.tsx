@@ -238,7 +238,7 @@ export default function LeaveRequestFormModal({
                 : 'success'
             }
             message={
-              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Space orientation="vertical" size={4} style={{ width: '100%' }}>
                 <Text>
                   Requesting: <strong>{leaveCalc.workingDays}</strong> working day
                   {leaveCalc.workingDays !== 1 ? 's' : ''}

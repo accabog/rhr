@@ -208,7 +208,7 @@ export default function TimesheetDetailPage() {
           <Card>
             <Row justify="space-between" align="middle">
               <Col>
-                <Space direction="vertical" size={0}>
+                <Space orientation="vertical" size={0}>
                   <Title level={4} style={{ margin: 0 }}>
                     Timesheet: {dayjs(timesheet.period_start).format('MMM D')} -{' '}
                     {dayjs(timesheet.period_end).format('MMM D, YYYY')}

@@ -58,7 +58,7 @@ export default function DashboardPage() {
                   title="Total Employees"
                   value={stats.total_employees}
                   prefix={<TeamOutlined />}
-                  valueStyle={{ color: '#1890ff' }}
+                  styles={{ content: { color: '#1890ff' } }}
                 />
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   {stats.active_employees} active
@@ -71,7 +71,7 @@ export default function DashboardPage() {
                   title="On Leave Today"
                   value={stats.on_leave_employees}
                   prefix={<CalendarOutlined />}
-                  valueStyle={{ color: '#faad14' }}
+                  styles={{ content: { color: '#faad14' } }}
                 />
               </Card>
             </Col>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
                   title="Pending Leave Requests"
                   value={stats.pending_leave_requests}
                   prefix={<ClockCircleOutlined />}
-                  valueStyle={{ color: stats.pending_leave_requests > 0 ? '#fa8c16' : '#52c41a' }}
+                  styles={{ content: { color: stats.pending_leave_requests > 0 ? '#fa8c16' : '#52c41a' } }}
                 />
               </Card>
             </Col>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
                   title="Expiring Contracts"
                   value={stats.expiring_contracts}
                   prefix={<FileProtectOutlined />}
-                  valueStyle={{ color: stats.expiring_contracts > 0 ? '#ff4d4f' : '#52c41a' }}
+                  styles={{ content: { color: stats.expiring_contracts > 0 ? '#ff4d4f' : '#52c41a' } }}
                   suffix={<Text type="secondary" style={{ fontSize: 12 }}>in 30 days</Text>}
                 />
               </Card>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                   title="New Hires"
                   value={stats.recent_hires}
                   prefix={<UserAddOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
+                  styles={{ content: { color: '#52c41a' } }}
                   suffix={<Text type="secondary" style={{ fontSize: 12 }}>last 30 days</Text>}
                 />
               </Card>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                   }
                   prefix={<RiseOutlined />}
                   suffix="%"
-                  valueStyle={{ color: '#52c41a' }}
+                  styles={{ content: { color: '#52c41a' } }}
                 />
               </Card>
             </Col>

@@ -110,7 +110,7 @@ export default function LeavePage() {
       title: 'Dates',
       key: 'dates',
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text>
             {dayjs(record.start_date).format('MMM D')}
             {record.start_date !== record.end_date &&
@@ -318,7 +318,7 @@ export default function LeavePage() {
         <Col xs={24} lg={8}>
           <Card title="Leave Balances">
             {balances.length > 0 ? (
-              <Space direction="vertical" style={{ width: '100%' }} size={16}>
+              <Space orientation="vertical" style={{ width: '100%' }} size={16}>
                 {balances.map((balance: LeaveBalanceSummary) => {
                   const entitled = parseFloat(balance.entitled_days);
                   const remaining = parseFloat(balance.remaining_days);
@@ -346,7 +346,7 @@ export default function LeavePage() {
                         percent={Math.round(percent)}
                         showInfo={false}
                         strokeColor={balance.leave_type_color}
-                        trailColor="#f0f0f0"
+                        railColor="#f0f0f0"
                         size="small"
                       />
                       {pending > 0 && (
