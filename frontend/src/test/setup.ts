@@ -13,12 +13,15 @@ beforeAll(() => {
 });
 
 // Reset handlers and cleanup React after each test
-// Using async cleanup with promise flush to prevent "window is not defined" errors
-// from React's scheduler running after jsdom teardown
+// Using multiple async ticks to ensure React's scheduler completes all pending work
+// before jsdom teardown. React uses setImmediate for scheduling which can cause
+// "window is not defined" errors if work runs after test cleanup.
 afterEach(async () => {
   cleanup();
   server.resetHandlers();
-  // Allow any pending React scheduler work to complete
+  // Flush all microtasks and scheduled macrotasks
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setImmediate(resolve));
   await new Promise((resolve) => setTimeout(resolve, 0));
 });
 
