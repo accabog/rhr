@@ -54,7 +54,7 @@ jobs:
             # Pull latest code for configs
             git fetch origin develop
             git checkout develop
-            git pull origin develop
+            git reset --hard origin/develop
 
             # Login to GitHub Container Registry
             echo "${GH_TOKEN}" | docker login ghcr.io -u "${GH_ACTOR}" --password-stdin
