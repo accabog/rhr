@@ -22,20 +22,20 @@ make down             # Stop all services
 
 ### Running Tests
 ```bash
-# Backend - all tests
-cd backend && pytest
+# Backend - all tests (use uv run to ensure correct venv)
+cd backend && uv run pytest
 
 # Backend - single test file
-cd backend && pytest apps/employees/tests/test_views.py
+cd backend && uv run pytest apps/employees/tests/test_views.py
 
 # Backend - single test function
-cd backend && pytest apps/employees/tests/test_views.py::TestEmployeeAPI::test_list_employees -v
+cd backend && uv run pytest apps/employees/tests/test_views.py::TestEmployeeAPI::test_list_employees -v
 
 # Backend - tests matching pattern
-cd backend && pytest -k "employee" -v
+cd backend && uv run pytest -k "employee" -v
 
 # Backend - with coverage
-cd backend && pytest --cov=apps
+cd backend && uv run pytest --cov=apps
 
 # Frontend - all tests
 cd frontend && npm test
@@ -50,16 +50,16 @@ cd frontend && npx playwright test e2e/auth.spec.ts  # single file
 
 ### Linting
 ```bash
-cd backend && ruff check .
-cd backend && ruff format .
+cd backend && uv run ruff check .
+cd backend && uv run ruff format .
 cd frontend && npm run lint
 ```
 
 ### Database
 ```bash
-cd backend && python manage.py migrate
-cd backend && python manage.py makemigrations <app_name>
-cd backend && python manage.py shell_plus
+cd backend && uv run python manage.py migrate
+cd backend && uv run python manage.py makemigrations <app_name>
+cd backend && uv run python manage.py shell_plus
 make db-shell         # PostgreSQL shell
 ```
 
@@ -121,7 +121,7 @@ frontend/src/
 2. Create serializer in `apps/<app>/serializers.py`
 3. Create ViewSet inheriting `TenantAwareViewSet` in `apps/<app>/views.py`
 4. Register routes in `apps/<app>/urls.py`
-5. Create migration: `python manage.py makemigrations <app>`
+5. Create migration: `uv run python manage.py makemigrations <app>`
 
 ### Adding a Frontend Feature
 1. Create feature folder: `src/features/<feature>/`
