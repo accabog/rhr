@@ -97,7 +97,8 @@ export async function fetchTimesheets(params?: {
   if (params?.status) searchParams.append('status', params.status);
   if (params?.employee) searchParams.append('employee', params.employee.toString());
 
-  const response = await apiClient.get(`/timesheets/?${searchParams}`);
+  const queryString = searchParams.toString();
+  const response = await apiClient.get(`/timesheets/${queryString ? `?${queryString}` : ''}`);
   return response.data;
 }
 

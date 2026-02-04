@@ -15,7 +15,7 @@ import {
   Input,
   Empty,
   Popconfirm,
-  List,
+  Flex,
 } from 'antd';
 import {
   PlusOutlined,
@@ -110,7 +110,7 @@ export default function LeavePage() {
       title: 'Dates',
       key: 'dates',
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text>
             {dayjs(record.start_date).format('MMM D')}
             {record.start_date !== record.end_date &&
@@ -318,7 +318,7 @@ export default function LeavePage() {
         <Col xs={24} lg={8}>
           <Card title="Leave Balances">
             {balances.length > 0 ? (
-              <Space direction="vertical" style={{ width: '100%' }} size={16}>
+              <Space orientation="vertical" style={{ width: '100%' }} size={16}>
                 {balances.map((balance: LeaveBalanceSummary) => {
                   const entitled = parseFloat(balance.entitled_days);
                   const remaining = parseFloat(balance.remaining_days);
@@ -346,7 +346,7 @@ export default function LeavePage() {
                         percent={Math.round(percent)}
                         showInfo={false}
                         strokeColor={balance.leave_type_color}
-                        trailColor="#f0f0f0"
+                        railColor="#f0f0f0"
                         size="small"
                       />
                       {pending > 0 && (
@@ -376,20 +376,24 @@ export default function LeavePage() {
             style={{ marginTop: 16 }}
           >
             {holidays.length > 0 ? (
-              <List
-                size="small"
-                dataSource={holidays}
-                renderItem={(holiday: Holiday) => (
-                  <List.Item>
-                    <Space>
-                      <Text type="secondary">
-                        {dayjs(holiday.date).format('MMM D')}
-                      </Text>
-                      <Text>{holiday.name}</Text>
-                    </Space>
-                  </List.Item>
-                )}
-              />
+              <Flex vertical gap={8}>
+                {holidays.map((holiday: Holiday) => (
+                  <Flex
+                    key={holiday.id}
+                    justify="space-between"
+                    align="center"
+                    style={{
+                      padding: '8px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <Text type="secondary" style={{ minWidth: 60 }}>
+                      {dayjs(holiday.date).format('MMM D')}
+                    </Text>
+                    <Text style={{ flex: 1, marginLeft: 12 }}>{holiday.name}</Text>
+                  </Flex>
+                ))}
+              </Flex>
             ) : (
               <Text type="secondary">No upcoming holidays</Text>
             )}

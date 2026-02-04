@@ -84,7 +84,7 @@ describe('LeaveRequestFormModal', () => {
 
       // Click the leave type select to open dropdown
       const selectContainer = screen.getByText('Leave Type').closest('.ant-form-item');
-      const selectTrigger = selectContainer?.querySelector('.ant-select-selector');
+      const selectTrigger = selectContainer?.querySelector('.ant-select-content') ?? selectContainer?.querySelector('.ant-select-content');
       if (selectTrigger) {
         await user.click(selectTrigger);
       }
@@ -108,7 +108,7 @@ describe('LeaveRequestFormModal', () => {
 
       // Click the leave type select
       const selectContainer = screen.getByText('Leave Type').closest('.ant-form-item');
-      const selectTrigger = selectContainer?.querySelector('.ant-select-selector');
+      const selectTrigger = selectContainer?.querySelector('.ant-select-content');
       if (selectTrigger) {
         await user.click(selectTrigger);
       }
@@ -138,7 +138,7 @@ describe('LeaveRequestFormModal', () => {
 
       // Select Annual Leave which has pending days
       const selectContainer = screen.getByText('Leave Type').closest('.ant-form-item');
-      const selectTrigger = selectContainer?.querySelector('.ant-select-selector');
+      const selectTrigger = selectContainer?.querySelector('.ant-select-content');
       if (selectTrigger) {
         await user.click(selectTrigger);
       }
@@ -198,7 +198,7 @@ describe('LeaveRequestFormModal', () => {
 
       // Select a leave type first
       const selectContainer = screen.getByText('Leave Type').closest('.ant-form-item');
-      const selectTrigger = selectContainer?.querySelector('.ant-select-selector');
+      const selectTrigger = selectContainer?.querySelector('.ant-select-content');
       if (selectTrigger) {
         await user.click(selectTrigger);
       }
@@ -261,7 +261,7 @@ describe('LeaveRequestFormModal', () => {
 
       // Select leave type
       const selectContainer = screen.getByText('Leave Type').closest('.ant-form-item');
-      const selectTrigger = selectContainer?.querySelector('.ant-select-selector');
+      const selectTrigger = selectContainer?.querySelector('.ant-select-content');
       if (selectTrigger) {
         await user.click(selectTrigger);
       }

@@ -125,7 +125,7 @@ export default function ContractsPage() {
       title: 'Contract',
       key: 'contract',
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text>{record.title}</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
             {record.contract_type_name}
@@ -167,7 +167,7 @@ export default function ContractsPage() {
       key: 'status',
       width: 120,
       render: (_, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Tag color={STATUS_COLORS[record.status]}>
             {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
           </Tag>
@@ -254,7 +254,7 @@ export default function ContractsPage() {
             <Statistic
               title="Active"
               value={stats?.active || 0}
-              valueStyle={{ color: '#52c41a' }}
+              styles={{ content: { color: '#52c41a' } }}
             />
           </Card>
         </Col>
@@ -263,7 +263,7 @@ export default function ContractsPage() {
             <Statistic
               title="Draft"
               value={stats?.draft || 0}
-              valueStyle={{ color: '#8c8c8c' }}
+              styles={{ content: { color: '#8c8c8c' } }}
             />
           </Card>
         </Col>
@@ -272,7 +272,7 @@ export default function ContractsPage() {
             <Statistic
               title="Expiring Soon"
               value={stats?.expiring_soon || 0}
-              valueStyle={{ color: '#faad14' }}
+              styles={{ content: { color: '#faad14' } }}
               prefix={<WarningOutlined />}
             />
           </Card>
@@ -283,7 +283,7 @@ export default function ContractsPage() {
           <Col span={24}>
             <Alert
               type="warning"
-              message={`${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring within 30 days`}
+              title={`${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring within 30 days`}
               description={
                 <ul style={{ margin: '8px 0 0', paddingLeft: 20 }}>
                   {expiring.slice(0, 3).map((c) => (

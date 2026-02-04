@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
   workflow_dispatch:
+    inputs:
+      reset_staging_db:
+        description: 'Reset staging database (destructive!)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -39,7 +45,7 @@ jobs:
           npx npm-check-updates --format group
 
       - name: Create issue if outdated
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const title = `Weekly Dependency Review - ${new Date().toISOString().split('T')[0]}`;
@@ -108,3 +114,34 @@ jobs:
           name: benchmark-results
           path: ./backend/benchmark.json
           retention-days: 90
+
+  reset-staging-db:
+    name: Reset Staging Database
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.reset_staging_db == 'true' }}
+    environment: staging
+
+    steps:
+      - name: Reset staging database
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/rhr
+
+            echo "Stopping services..."
+            docker compose -f docker-compose.prod.yml down
+
+            echo "Removing database volume..."
+            docker volume rm rhr_postgres_data || true
+
+            echo "Starting database..."
+            docker compose -f docker-compose.prod.yml up -d db redis
+
+            echo "Waiting for database to be ready..."
+            sleep 10
+
+            echo "Database reset complete. Run deploy workflow to apply migrations."

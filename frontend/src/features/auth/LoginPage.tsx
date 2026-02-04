@@ -45,13 +45,13 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#1e3a5f',
         padding: 24,
       }}
     >
-      <Card style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+      <Card style={{ width: 400, padding: 40, borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.25)' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Title level={2} style={{ marginBottom: 8 }}>
+          <Title level={2} style={{ marginBottom: 8, fontSize: 26, fontWeight: 700 }}>
             Raptor HR
           </Title>
           <Text type="secondary">Sign in to your account</Text>
@@ -80,18 +80,18 @@ export default function LoginPage() {
               { type: 'email', message: 'Please enter a valid email' },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email address" disabled={isLoading} />
+            <Input prefix={<MailOutlined />} placeholder="Email address" disabled={isLoading} style={{ borderRadius: 4 }} />
           </Form.Item>
 
           <Form.Item
             name="password"
             rules={[{ required: true, message: 'Please enter your password' }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={isLoading} />
+            <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={isLoading} style={{ borderRadius: 4 }} />
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} disabled={googleLoading} block>
+            <Button type="primary" htmlType="submit" loading={loading} disabled={googleLoading} block style={{ backgroundColor: '#0066cc', borderRadius: 4 }}>
               Sign In
             </Button>
           </Form.Item>

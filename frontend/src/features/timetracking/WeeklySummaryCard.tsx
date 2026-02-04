@@ -105,7 +105,7 @@ export default function WeeklySummaryCard({
             }
             value={overtimeHours.toFixed(1)}
             suffix="hrs"
-            valueStyle={{ color: overtimeHours > 0 ? '#faad14' : undefined }}
+            styles={overtimeHours > 0 ? { content: { color: '#faad14' } } : undefined}
           />
         </Col>
         <Col xs={24} sm={8}>

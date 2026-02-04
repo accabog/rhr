@@ -79,7 +79,7 @@ export default function TimesheetsPage() {
       title: 'Period',
       key: 'period',
       render: (_: unknown, record: TimesheetListItem) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text strong>
             {dayjs(record.period_start).format('MMM D')} -{' '}
             {dayjs(record.period_end).format('MMM D, YYYY')}
@@ -101,7 +101,7 @@ export default function TimesheetsPage() {
       key: 'hours',
       width: 140,
       render: (_: unknown, record: TimesheetListItem) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text strong>{record.total_hours.toFixed(1)}h total</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
             {parseFloat(record.total_regular_hours).toFixed(1)}h regular

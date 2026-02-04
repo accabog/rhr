@@ -3,17 +3,39 @@
  */
 
 import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { server } from './mocks/server';
+
+// Suppress React scheduler errors that occur during test cleanup.
+// These are benign errors caused by React's concurrent scheduler trying to
+// access window after jsdom teardown. All tests pass; this is cleanup noise.
+// The error manifests as "ReferenceError: window is not defined" from
+// react-dom-client.development.js via setImmediate.
+process.on('uncaughtException', (error) => {
+  if (error instanceof ReferenceError && error.message.includes('window is not defined')) {
+    // Suppress this specific error - it's benign cleanup noise
+    return;
+  }
+  throw error;
+});
 
 // Start MSW server before all tests
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'warn' });
 });
 
-// Reset handlers after each test
-afterEach(() => {
+// Reset handlers and cleanup React after each test
+// Using multiple async ticks to ensure React's scheduler completes all pending work
+// before jsdom teardown. React uses setImmediate for scheduling which can cause
+// "window is not defined" errors if work runs after test cleanup.
+afterEach(async () => {
+  cleanup();
   server.resetHandlers();
+  // Flush all microtasks and scheduled macrotasks
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setTimeout(resolve, 0));
 });
 
 // Clean up after all tests

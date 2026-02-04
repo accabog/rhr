@@ -1,11 +1,12 @@
 name: Deploy to Staging
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["CI"]
     types:
       - completed
-    branches: [main]
+    branches: [develop]
 
 env:
   REGISTRY: ghcr.io
@@ -15,8 +16,8 @@ jobs:
   deploy:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    # Only deploy if CI passed AND staging secrets are configured
-    if: ${{ github.event.workflow_run.conclusion == 'success' && vars.STAGING_ENABLED == 'true' }}
+    # Only deploy if CI passed (or manual trigger) AND staging secrets are configured
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && vars.STAGING_ENABLED == 'true' }}
 
     environment:
       name: staging
@@ -51,9 +52,9 @@ jobs:
             cd /opt/rhr
 
             # Pull latest code for configs
-            git fetch origin main
-            git checkout main
-            git pull origin main
+            git fetch origin develop
+            git checkout develop
+            git pull origin develop
 
             # Login to GitHub Container Registry
             echo "${GH_TOKEN}" | docker login ghcr.io -u "${GH_ACTOR}" --password-stdin

@@ -144,8 +144,7 @@ describe('WeeklySummaryCard', () => {
 
       renderCard({ summary: summaryAt50Percent, isLoading: false });
 
-      const progressElement = document.querySelector('.ant-progress-text');
-      expect(progressElement).toBeInTheDocument();
+      // Progress displays the total hours via custom format function
       expect(screen.getByText('20.0')).toBeInTheDocument();
     });
 

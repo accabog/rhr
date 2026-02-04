@@ -92,7 +92,7 @@ export default function DocumentUpload({
         open={isModalOpen}
         onCancel={handleCloseModal}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" onFinish={handleUpload}>
           <Form.Item label="File" required>
