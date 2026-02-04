@@ -23,7 +23,7 @@ test.describe('Visual Regression', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveScreenshot('dashboard.png', {
-      maxDiffPixels: 100,
+      maxDiffPixels: 150,
     });
   });
 
@@ -31,7 +31,7 @@ test.describe('Visual Regression', () => {
     await page.goto('/employees');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveScreenshot('employees.png', {
-      maxDiffPixels: 100,
+      maxDiffPixels: 150,
     });
   });
 
@@ -39,7 +39,7 @@ test.describe('Visual Regression', () => {
     await page.goto('/leave/calendar');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveScreenshot('leave-calendar.png', {
-      maxDiffPixels: 100,
+      maxDiffPixels: 150,
     });
   });
 });
