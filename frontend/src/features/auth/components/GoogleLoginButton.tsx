@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { App } from 'antd';
@@ -12,6 +12,8 @@ interface GoogleLoginButtonProps {
 
 export default function GoogleLoginButton({ disabled, onLoadingChange }: GoogleLoginButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [containerWidth, setContainerWidth] = useState<number | undefined>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { message } = App.useApp();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -54,20 +56,30 @@ export default function GoogleLoginButton({ disabled, onLoadingChange }: GoogleL
     message.error('Google login failed. Please try again.');
   };
 
+  useEffect(() => {
+    if (containerRef.current) {
+      const width = containerRef.current.offsetWidth;
+      // Google Sign-In button accepts width between 200-400px
+      setContainerWidth(Math.min(Math.max(width, 200), 400));
+    }
+  }, []);
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-      <GoogleLogin
-        onSuccess={handleSuccess}
-        onError={handleError}
-        useOneTap={false}
-        type="standard"
-        theme="outline"
-        size="large"
-        text="signin_with"
-        shape="rectangular"
-        width={350}
-        logo_alignment="left"
-      />
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      {containerWidth && (
+        <GoogleLogin
+          onSuccess={handleSuccess}
+          onError={handleError}
+          useOneTap={false}
+          type="standard"
+          theme="outline"
+          size="large"
+          text="signin_with"
+          shape="rectangular"
+          width={containerWidth}
+          logo_alignment="left"
+        />
+      )}
       {(loading || disabled) && (
         <div
           style={{
